@@ -7,6 +7,7 @@ go_fx_v1を再構築する.
 変化点は下記の通り. 
 
 - 日足のトレード専用にする
+- 扱う通貨はUSD/JPYのみ
 - talibのテクニカルを使って、売買ルールを指定する
 - 売買ルールのベースはRubyで構築したトレードシミュレーションと基本は同じにする
 - Frontはおまけ
@@ -18,17 +19,59 @@ go_fx_v1を再構築する.
 その他
 
 - databaseはpostgresql
-- 日足データは 
-
-
-
-### API連携
-
-[exchangerates](https://exchangeratesapi.io)を使って為替データを取得する.  
-**未実装**(今のところ使う必要がないので)
+- 日足データはクリック証券かな(??)から取ってきたものを使う
 
 
 ### config.iniの設定
+
+```ini
+[fxtrading]
+currency_code = USD_JPY
+
+
+[db]
+SQLDriver = postgres
+DbName = exchange_v2
+
+```
+
+config.go
+```go
+package config
+
+import (
+	"log"
+
+	"gopkg.in/ini.v1"
+)
+
+type ConfigList struct {
+	SQLDriver    string
+	DbName       string
+	CurrencyCode string
+}
+
+var Config ConfigList
+
+func init() {
+	cfg, err := ini.Load("config.ini")
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	Config = ConfigList{
+		SQLDriver:    cfg.Section("db").Key("SQLDriver").String(),
+		DbName:       cfg.Section("db").Key("DbName").String(),
+		CurrencyCode: cfg.Section("fxtrading").Key("currency_code").String(),
+	}
+
+}
+
+
+
+```
+
+
 
 ### データベースの設定
 postgresqlを使用する(sqlite3よりは使い慣れているので)
