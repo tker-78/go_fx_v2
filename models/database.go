@@ -22,7 +22,7 @@ const tableName = "USD_JPY_1d"
 func init() {
 	var err error
 	connectionStr := "user=takuyakinoshita dbname=exchange_2 sslmode=disable"
-	DbConnection, err := sql.Open(config.Config.SQLDriver, connectionStr)
+	DbConnection, err = sql.Open(config.Config.SQLDriver, connectionStr)
 	if err != nil {
 		log.Fatalln("Error occured while opening database file: ", err)
 	}
@@ -34,7 +34,7 @@ func init() {
 			high FLOAT,
 			low FLOAT,
 			close FLOAT,
-			swap FLOAT)
+			swap INTEGER)
 	`, tableName)
 
 	_, err = DbConnection.Exec(cmd)
@@ -45,9 +45,9 @@ func init() {
 
 // CSVファイルから為替データの流し込み
 func LoadCSV() {
-	// cmd := fmt.Sprintf(`
-	// 	INSERT INTO %s (time, open, high, low, close, swap) VALUES ($1, $2, $3, $4, $5, $6)
-	// `, tableName)
+	c := fmt.Sprintf(`
+		INSERT INTO %s (time, open, high, low, close, swap) VALUES ($1, $2, $3, $4, $5, $6)
+	`, tableName)
 
 	// dataフォルダに格納しているファイルすべてのファイルパスをpathsに格納する
 
@@ -71,38 +71,47 @@ func LoadCSV() {
 		r := csv.NewReader(file)
 		rows, _ := r.ReadAll()
 
-		for _, row := range rows {
-			timeTime, err := time.Parse("2006-01-02", row[0])
+		for _, row := range rows[1:] {
+			timeTime, err := time.Parse("2006/01/02", row[0])
 			if err != nil {
-				log.Fatalln("Error occured while parsing time: ", err)
+				log.Println("Error occured while parsing time: ", err)
 			}
 
 			timeString := timeTime.Format(time.RFC3339)
 
 			open, err := strconv.ParseFloat(row[1], 64)
 			if err != nil {
-				log.Fatalln("Error occured while parsing open: ", err)
+				log.Println("Error occured while parsing open: ", err)
 			}
 
 			high, err := strconv.ParseFloat(row[2], 64)
 			if err != nil {
-				log.Fatalln("Error occured while parsing high: ", err)
+				log.Println("Error occured while parsing high: ", err)
 			}
 
 			low, err := strconv.ParseFloat(row[3], 64)
 			if err != nil {
-				log.Fatalln("Error occured while parsiing low: ", err)
+				log.Println("Error occured while parsiing low: ", err)
 			}
 
 			close, err := strconv.ParseFloat(row[4], 64)
 			if err != nil {
-				log.Fatalln("Error occured while parsing close: ", err)
+				log.Println("Error occured while parsing close: ", err)
 			}
 
-			swap, err := strconv.ParseInt(row[5], 64, 64)
+			swap, err := strconv.Atoi(row[5])
 			if err != nil {
-				log.Fatalln("Error occured while parsing swap: ", err)
+				log.Println("Error occured while parsing swap: ", err)
 			}
+			if err != nil || row[5] == "" {
+				swap = 0
+			}
+
+			_, err = DbConnection.Exec(c, timeString, open, high, low, close, swap)
+			if err != nil {
+				log.Println(err)
+			}
+
 		}
 	}
 

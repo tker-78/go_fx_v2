@@ -84,22 +84,14 @@ import (
 
 func init() {
   conStr := "user=takuyakinoshita dbname=exchangerates sslmode=disable"
-  DbConnection, err = sql.Openm(config.Config.SQLDriver, conStr)
+  DbConnection, err = sql.Open(config.Config.SQLDriver, conStr)
+  // ここで := を使うとnil pointer dereference errorが出るので注意
 }
 ```
 
 
-### candleデータを取得する
+### Databaseへのデータ取り込み
 
-ブラウザからのクエリに応じてデータを返すようにする.  
-
-なので、webserver.goに処理を記述する. 
-でも先に、条件を指定してデータベースからデータフレームを抽出するメソッド群を書いておく.  
-
-candle.go
-```go
-
-```
 
 
 ### Vue.jsでデータフレームを描画する
