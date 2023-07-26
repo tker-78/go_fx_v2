@@ -13,4 +13,5 @@ func main() {
 
 	dateTime, _ := time.Parse("2006-01-02 03:04:05", "2011-03-25 01:02:12")
 	fmt.Println(models.GetCandle(dateTime))
+	fmt.Println(models.GetCandlesByLimit(10))
 }

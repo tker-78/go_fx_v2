@@ -55,3 +55,33 @@ func GetCandle(timeTime time.Time) *Candle {
 		Swap:  candle.Swap,
 	}
 }
+
+// 指定した期間のDataFrameCandleを返す
+// limitで最新側の取得
+func GetCandlesByLimit(limit int) (*DataFrameCandle, error) {
+	tableName := GetTableName()
+	cmd := fmt.Sprintf(`
+	SELECT * FROM (
+		SELECT time, open, high, low, close, swap FROM %s 
+		ORDER BY time DESC limit $1
+	) AS t1
+	ORDER BY time ASC;
+	`, tableName)
+
+	rows, err := DbConnection.Query(cmd, limit)
+	if err != nil {
+		fmt.Println("error occured while query", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	dfCandle := &DataFrameCandle{}
+	dfCandle.CurrencyCode = config.Config.CurrencyCode
+	dfCandle.Duration = config.Config.Duration
+	for rows.Next() {
+		candle := Candle{}
+		rows.Scan(&candle.Time, &candle.Open, &candle.High, &candle.Low, &candle.Close, &candle.Swap)
+		dfCandle.Candles = append(dfCandle.Candles, candle)
+	}
+	return dfCandle, err
+}
