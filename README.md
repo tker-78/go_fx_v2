@@ -63,11 +63,10 @@ func init() {
 		SQLDriver:    cfg.Section("db").Key("SQLDriver").String(),
 		DbName:       cfg.Section("db").Key("DbName").String(),
 		CurrencyCode: cfg.Section("fxtrading").Key("currency_code").String(),
+		Port : cfg.Section("web").Key("port").MustInt(),
 	}
 
 }
-
-
 
 ```
 
@@ -91,22 +90,7 @@ func init() {
 
 
 ### Databaseへのデータ取り込み
-
-
-
-### Vue.jsでデータフレームを描画する
-**未実装**
-**Vue.jsを学習後に再度チャレンジ**
-とりあえずはhtmlで描画して進める.  
-
-### 1mのローソクから他のローソク足データベースを作成する
-
-```go
-func CreateCandleWithDuraion() {
-
-}
-
-```
+1dのローソクからデータベースを作成する
 
 data配下のcsvファイルは、時刻のデータが
 `00:01`となっており、time.Parse時に`00:00:01`として解析されるため、
@@ -123,6 +107,7 @@ Vimを使用すると一瞬でできる.
 
 parseする際は下記のようにする.  
 ```go
+// 24H単位の時間の場合
 timeTime, err := time.Parse("2006-01-02 15:04:05", "2023-05-01 20:01:12")
 ```
 `03:04:05`にした場合は、time.Hourのout of rangeのエラーが発生するので注意する.  
