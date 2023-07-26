@@ -10,6 +10,7 @@ type ConfigList struct {
 	SQLDriver    string
 	DbName       string
 	CurrencyCode string
+	Duration     string
 	Port         int
 }
 
@@ -25,6 +26,7 @@ func init() {
 		SQLDriver:    cfg.Section("db").Key("SQLDriver").String(),
 		DbName:       cfg.Section("db").Key("DbName").String(),
 		CurrencyCode: cfg.Section("fxtrading").Key("currency_code").String(),
+		Duration:     cfg.Section("fxtrading").Key("duration").String(),
 		Port:         cfg.Section("web").Key("port").MustInt(),
 	}
 

@@ -92,25 +92,49 @@ func init() {
 ### Databaseへのデータ取り込み
 1dのローソクからデータベースを作成する
 
-data配下のcsvファイルは、時刻のデータが
-`00:01`となっており、time.Parse時に`00:00:01`として解析されるため、
-置換が必要.  
-Vimを使用すると一瞬でできる.  
-```vim
-:%s/([0-9]{2}):([0-9]{2})/\1:\2:00
-```
-()にマッチしたものを、置換後の文字列で`\1`, `\2`などで引き出せる.  
+SQL.open時には、connectionとerrorはグローバル登録して、
+型推論はしないようにしないとエラーが発生するので注意する. 
 
-[Vimでregexpでマッチした文字列を使用して置換](https://penguing27.hatenablog.jp/entry/2023/01/12/232452)
-
-
-
-parseする際は下記のようにする.  
 ```go
-// 24H単位の時間の場合
-timeTime, err := time.Parse("2006-01-02 15:04:05", "2023-05-01 20:01:12")
+// 下記はぬるぽ
+DbConnection, err := sql.Open(config.Config.SQLDriver, connectionStr)
 ```
-`03:04:05`にした場合は、time.Hourのout of rangeのエラーが発生するので注意する.  
+
+
+### DataFrameの作成
+データベースから情報を取ってきてメモリに格納するDataFrameを作成する.
+
+`candle.go`
+データベースから値を読み出して、candle構造体に1本のcandle情報を格納する
+- time
+- open
+- high
+- low
+- close
+- swap
+
+データベースから値を読み出して、DataFrameCandle構造体を返すグローバル関数もここに定義する.  
+
+
+
+`dfcandle.go`
+candleの配列の形をとる.  
+- duration
+- events(購買情報,後で追加)
+- SMA(technical, 後で追加)
+- EMA(technical, 後で追加)
+- ...
+- candles []candle
+
+
+
+[models/dfcandle.go]
+```go
+
+
+```
+
+[models/candle.go]
 
 
 ### SignalEventsの実装
