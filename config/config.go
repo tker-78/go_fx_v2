@@ -12,6 +12,7 @@ type ConfigList struct {
 	CurrencyCode string
 	Duration     string
 	Port         int
+	BaseURL      string
 }
 
 var Config ConfigList
@@ -28,6 +29,7 @@ func init() {
 		CurrencyCode: cfg.Section("fxtrading").Key("currency_code").String(),
 		Duration:     cfg.Section("fxtrading").Key("duration").String(),
 		Port:         cfg.Section("web").Key("port").MustInt(),
+		BaseURL:      cfg.Section("web").Key("baseURL").String(),
 	}
 
 }
