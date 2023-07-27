@@ -85,3 +85,33 @@ func GetCandlesByLimit(limit int) (*DataFrameCandle, error) {
 	}
 	return dfCandle, err
 }
+
+// 指定した期間のDataFrameCandleを返す
+// between
+func GetCandlesByBetween(start, end time.Time) (*DataFrameCandle, error) {
+	tableName := GetTableName()
+	startDate := TruncateTimeToDate(start)
+	endDate := TruncateTimeToDate(end)
+
+	cmd := fmt.Sprintf(`
+	SELECT * FROM %s 
+	WHERE time BETWEEN $1 AND $2
+	`, tableName)
+
+	rows, err := DbConnection.Query(cmd, startDate, endDate)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	dfCandle := &DataFrameCandle{}
+	dfCandle.CurrencyCode = config.Config.CurrencyCode
+	dfCandle.Duration = config.Config.Duration
+	for rows.Next() {
+		candle := Candle{}
+		rows.Scan(&candle.Time, &candle.Open, &candle.High, &candle.Low, &candle.Close, &candle.Swap)
+		dfCandle.Candles = append(dfCandle.Candles, candle)
+	}
+	return dfCandle, err
+}
