@@ -30,6 +30,12 @@ func apiCandleHandler(w http.ResponseWriter, r *http.Request) {
 		log.Println("error occured while making dataframe", err)
 	}
 
+	// CORSの設定
+	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5500")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+	w.Header().Set("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,UPDATE,OPTIONS")
+
 	w.Header().Set("Content-Type", "application/json")
 
 	js, err := json.Marshal(df)
