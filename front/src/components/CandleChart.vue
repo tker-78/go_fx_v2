@@ -3,7 +3,7 @@
   <GChart
     :type="chartType"
     :data="chartData"
-    :option="chartOptions"
+    :options="chartOptions"
   ></GChart>
 
 </template>

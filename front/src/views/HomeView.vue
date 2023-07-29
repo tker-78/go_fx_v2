@@ -30,10 +30,8 @@ export default {
       ['Fri', 68, 66, 22, 15]
       ],
       chartOptions: {
-        chart: {
-          height: 1000,
-          width: 1000,
-        }
+        width: '100%',
+        height: 800,
       },
       limit: 10,
       candles: [],
