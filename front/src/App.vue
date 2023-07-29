@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <v-app-bar scroll-behavior="collapse">
+    <v-app-bar scroll-behavior="collapse" color="blue">
       <v-app-bar-title>Go FX V2</v-app-bar-title>
       <template v-slot:append>
         <v-btn icon="mdi-heart"></v-btn>

@@ -5,22 +5,23 @@
     </v-form>
     <v-btn @click="onclick">button</v-btn>
 
-    <candle-chart v-bind:chartType="chartType" v-bind:chartData="candles" v-bind:chartOptions="chartOptions"></candle-chart>
+    <combo-chart v-bind:chartType="chartType" v-bind:chartData="candles" v-bind:chartOptions="chartOptions"></combo-chart>
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
-import CandleChart from '@/components/CandleChart.vue'
+// import CandleChart from '@/components/CandleChart.vue'
+import ComboChart from '@/components/ComboChart.vue'
 
 export default {
   name: 'HomeView',
   components: {
-    CandleChart,
+    ComboChart
   },
   data() {
     return {
-      chartType: 'CandlestickChart',
+      chartType: 'ComboChart',
       chartData: [
       ['time', 'low', 'open', 'close', 'high'],
       ['Mon', 20, 28, 38, 45],
@@ -30,6 +31,13 @@ export default {
       ['Fri', 68, 66, 22, 15]
       ],
       chartOptions: {
+        title: "combo chart",
+        seriesType: 'candlesticks',
+        series: {
+          1: { type: 'scatter', targetAxisIndex: 1 },
+          2: { type: 'line' },
+          3: { type: 'line' }
+        },
         width: '100%',
         height: 800,
       },
@@ -46,10 +54,10 @@ export default {
       })
       .then((data) => {
         this.candles = []
-        this.candles.push( ['time', 'low', 'open', 'close', 'high'])
+        this.candles.push( ['time', 'low', 'open', 'close', 'high', 'swap'])
         for (let candle of data.candles) {
           this.candles.push(
-            [candle.time, parseFloat(candle.low), parseFloat(candle.open), parseFloat(candle.close), parseFloat(candle.high)]
+            [candle.time, parseFloat(candle.low), parseFloat(candle.open), parseFloat(candle.close), parseFloat(candle.high), parseFloat(candle.swap)]
           )
         }
         console.log(this.candles)
