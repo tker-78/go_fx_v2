@@ -22,21 +22,15 @@ export default {
   data() {
     return {
       chartType: 'ComboChart',
-      chartData: [
-      ['time', 'low', 'open', 'close', 'high'],
-      ['Mon', 20, 28, 38, 45],
-      ['Tue', 31, 38, 55, 66],
-      ['Wed', 50, 55, 77, 80],
-      ['Thu', 77, 77, 66, 50],
-      ['Fri', 68, 66, 22, 15]
-      ],
+      chartData: [],
       chartOptions: {
         title: "combo chart",
         seriesType: 'candlesticks',
         series: {
           1: { type: 'scatter', targetAxisIndex: 1 },
-          2: { type: 'line' },
-          3: { type: 'line' }
+          2: { type: 'line' }, // sma1
+          3: { type: 'line' }, // sma2
+          4: { type: 'line' }, // sma3
         },
         width: '100%',
         height: 800,
