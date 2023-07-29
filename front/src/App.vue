@@ -14,8 +14,9 @@
       <router-link to="/about">About</router-link>
     </v-app-bar>
     <v-main>
-      <v-btn>Button</v-btn>
-      <router-view/>
+      <v-container>
+        <router-view/>
+      </v-container>
     </v-main>
   </v-app>
 </template>
