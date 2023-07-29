@@ -1,9 +1,13 @@
 <template>
   <div class="container">
-    <v-form>
-      limit: <input type="text" v-model="limit" >
-    </v-form>
-    <v-btn @click="onclick">button</v-btn>
+    <div>
+      <form>
+        limit: <input type="text" v-model="limit" label="">
+        start: <input type="date" v-model="startDate" label="">
+        end: <input type="date" v-model="endDate">
+      </form>
+    </div>
+    <v-btn @click="onclick" variant="outlined">Draw candle chart</v-btn>
 
     <combo-chart v-bind:chartType="chartType" v-bind:chartData="candles" v-bind:chartOptions="chartOptions"></combo-chart>
   </div>
@@ -36,12 +40,14 @@ export default {
         height: 800,
       },
       limit: 10,
+      startDate: "",
+      endDate: "",
       candles: [],
     }
   },
   methods: {
     onclick() {
-      fetch(`http://localhost:8080/api/candle/?limit=${this.limit}`)
+      fetch(`http://localhost:8080/api/candle/?limit=${this.limit}&start=${this.startDate}&end=${this.endDate}`)
       .then((response) => {
         console.log(response)
         return response.json()
@@ -64,5 +70,8 @@ export default {
 <style scoped>
   .container {
     height: 800px;
+  }
+  form {
+    margin-top: 20px;
   }
 </style>
