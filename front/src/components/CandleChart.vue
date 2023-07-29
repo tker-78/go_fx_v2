@@ -3,6 +3,7 @@
   <GChart
     :type="chartType"
     :data="chartData"
+    :option="chartOptions"
   ></GChart>
 
 </template>
@@ -23,6 +24,12 @@
         type: Array,
         default: () => {
           return []
+        }
+      },
+      chartOptions: {
+        type: Object, 
+        default: () => {
+          return {}
         }
       }
     }

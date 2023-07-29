@@ -1,7 +1,11 @@
 <template>
   <div class="container">
+    <v-form>
+      limit: <input type="text" v-model="limit" >
+    </v-form>
     <v-btn @click="onclick">button</v-btn>
-    <candle-chart v-bind:chartType="chartType" v-bind:chartData="candles"></candle-chart>
+
+    <candle-chart v-bind:chartType="chartType" v-bind:chartData="candles" v-bind:chartOptions="chartOptions"></candle-chart>
   </div>
 </template>
 
@@ -25,6 +29,12 @@ export default {
       ['Thu', 77, 77, 66, 50],
       ['Fri', 68, 66, 22, 15]
       ],
+      chartOptions: {
+        chart: {
+          height: 1000,
+          width: 1000,
+        }
+      },
       limit: 10,
       candles: [],
     }
@@ -50,3 +60,9 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+  .container {
+    height: 800px;
+  }
+</style>
