@@ -12,10 +12,20 @@
     <div class="inputarea">
       <label>SMA</label>
       <form>
-        <input type="checkbox" id="sma" v-model="sma.enabled" @change="checkedSma">
+        <input type="checkbox" id="sma" v-model="sma.enabled">
         period1: <input type="text" v-model="sma.period1" style="width: 50px;"/>
         period2: <input type="text" v-model="sma.period2" style="width: 50px;"/>
         period3: <input type="text" v-model="sma.period3" style="width: 50px;"/> 
+      </form>
+    </div>
+
+    <div class="inputarea">
+      <label>EMA</label>
+      <form>
+        <input type="checkbox" id="ema" v-model="ema.enabled">
+        period1: <input type="text" v-model="ema.period1" style="width: 50px;"/>
+        period2: <input type="text" v-model="ema.period2" style="width: 50px;"/>
+        period3: <input type="text" v-model="ema.period3" style="width: 50px;"/> 
       </form>
     </div>
 
@@ -44,9 +54,9 @@ export default {
         seriesType: 'candlesticks',
         series: {
           1: { type: 'scatter', targetAxisIndex: 1 },
-          2: { type: 'line' }, // sma1
-          3: { type: 'line' }, // sma2
-          4: { type: 'line' }, // sma3
+          2: { type: 'line' }, // sma1 or ema1
+          3: { type: 'line' }, // sma2 or ema2
+          4: { type: 'line' }, // sma3 or ema3
         },
         width: '100%',
         height: 800,
@@ -64,6 +74,15 @@ export default {
         sma2: [],
         sma3: [],
       },
+      ema: {
+        period1: 7,
+        period2: 14,
+        period3: 25,
+        enabled: false,
+        ema1: [],
+        ema2: [],
+        ema3: [],
+      }
     }
   },
   methods: {
@@ -76,6 +95,7 @@ export default {
         this.candles = []
         var header = ['time', 'low', 'open', 'close', 'high', 'swap']
         if (this.sma.enabled === true) {
+          // SMAを有効にする場合
           header.push('sma1', 'sma2', 'sma3')
           this.candles.push(header)
           this.sma.sma1 = []
@@ -128,7 +148,64 @@ export default {
           }
           console.log(this.candles)
           
-        }else {
+        } else if (this.ema.enabled === true) {
+          // EMAを有効にする場合、
+            header.push('ema1', 'ema2', 'ema3')
+            this.candles.push(header)
+            this.ema.ema1 = []
+            this.ema.ema2 = []
+            this.ema.ema3 = []
+
+            if ( data.emas[0] != "undefined" ) {
+              this.ema.ema1.push(data.emas[0])
+            }
+
+            if (data.emas[1] != "undefined") {
+              this.ema.ema2.push(data.emas[1])
+            }
+
+            if (data.emas[2] != "undefined") {
+              this.ema.ema3.push(data.emas[2])
+            }
+
+            for (let candle of data.candles) {
+              this.candles.push(
+                [
+                  candle.time, 
+                  parseFloat(candle.low), 
+                  parseFloat(candle.open), 
+                  parseFloat(candle.close), 
+                  parseFloat(candle.high), 
+                  parseFloat(candle.swap),
+                  0,
+                  0,
+                  0
+                ]
+              )
+            }
+
+            for (let i = 1; i < this.candles.length; i++) {
+              this.candles[i][6] = parseFloat(this.ema.ema1[0].value[i-1]);
+              this.candles[i][7] = parseFloat(this.ema.ema2[0].value[i-1]);
+              this.candles[i][8] = parseFloat(this.ema.ema3[0].value[i-1]);
+              if (this.candles[i][6] == 0) {
+                this.candles[i][6] = null
+              }
+
+              if (this.candles[i][7] == 0) {
+                this.candles[i][7] = null
+              }
+
+              if (this.candles[i][8] == 0) {
+                this.candles[i][8] = null
+              }
+            }
+            console.log(this.candles)
+            
+
+
+
+        } else {
           this.candles.push(header)
           for (let candle of data.candles) {
             this.candles.push(
@@ -137,12 +214,6 @@ export default {
           }}
       })
     }, 
-    checkedSma() {
-      if ( this.sma.enabled === true ) {
-        
-        console.log("hello")
-      }
-    }
   }
 }
 </script>

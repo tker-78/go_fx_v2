@@ -12,10 +12,16 @@ type DataFrameCandle struct {
 	Duration     string   `json:"duration"`
 	Candles      []Candle `json:"candles"`
 	Smas         []Sma    `json:"smas,omitempty"`
+	Emas         []Ema    `json:"emas,omitempty"`
 }
 
 // technical用の型
 type Sma struct {
+	Period int       `json:"period,omitempty"`
+	Value  []float64 `json:"value,omitempty"`
+}
+
+type Ema struct {
 	Period int       `json:"period,omitempty"`
 	Value  []float64 `json:"value,omitempty"`
 }
@@ -84,6 +90,20 @@ func (df *DataFrameCandle) AddSma(period int) bool {
 	df.Smas = append(df.Smas, Sma{
 		Period: period,
 		Value:  smaVal,
+	})
+	return true
+}
+
+// EMA
+// SMAと同じ実装方法
+func (df *DataFrameCandle) AddEma(period int) bool {
+	if len(df.Candles) < period {
+		return false
+	}
+	emaVal := talib.Ema(df.Closes(), period)
+	df.Emas = append(df.Emas, Ema{
+		Period: period,
+		Value:  emaVal,
 	})
 	return true
 }

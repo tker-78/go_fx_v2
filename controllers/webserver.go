@@ -80,6 +80,11 @@ func apiCandleHandler(w http.ResponseWriter, r *http.Request) {
 	df.AddSma(period2)
 	df.AddSma(period3)
 
+	// EMA
+	df.AddEma(period1)
+	df.AddEma(period2)
+	df.AddEma(period3)
+
 	// CORSの設定
 	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5500")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
