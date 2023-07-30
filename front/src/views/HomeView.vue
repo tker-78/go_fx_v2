@@ -4,7 +4,7 @@
       <label>Duration</label>
       <form>
         limit: <input type="text" v-model="limit" label="" style="width: 50px;">
-        start: <input type="date" v-model="startDate" >
+        start: <input type="date" v-model="startDate">
         end: <input type="date" v-model="endDate">
       </form>
     </div>
@@ -104,7 +104,7 @@ export default {
   },
   methods: {
     onclick() {
-      fetch(`http://localhost:8080/api/candle/?limit=${this.limit}&start=${this.startDate}&end=${this.endDate}&period1=${this.sma.period1}&period2=${this.sma.period2}&period3=${this.sma.period3}`)
+      fetch(`http://localhost:8080/api/candle/?limit=${this.limit}&start=${this.startDate}&end=${this.endDate}&period1=${this.sma.period1}&period2=${this.sma.period2}&period3=${this.sma.period3}&bbn=${this.bband.n}&bbk=${this.bband.k}`)
       .then((response) => {
         return response.json()
       })
