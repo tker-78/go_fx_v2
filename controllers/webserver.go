@@ -85,6 +85,22 @@ func apiCandleHandler(w http.ResponseWriter, r *http.Request) {
 	df.AddEma(period2)
 	df.AddEma(period3)
 
+	// BBands
+	bbnStr := r.URL.Query().Get("bbn")
+	bbkStr := r.URL.Query().Get("bbk")
+
+	bbn, err := strconv.Atoi(bbnStr)
+	if err != nil || bbn < 0 || bbnStr == "" {
+		bbn = 20
+	}
+
+	bbk, err := strconv.Atoi(bbkStr)
+	if err != nil || bbk < 0 || bbkStr == "" {
+		bbk = 2
+	}
+
+	df.AddBBands(bbn, float64(bbk))
+
 	// CORSの設定
 	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5500")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")

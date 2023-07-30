@@ -29,6 +29,15 @@
       </form>
     </div>
 
+    <div class="inputarea">
+      <label>BBands</label>
+      <form>
+        <input type="checkbox" id="bbands" v-model="bband.enabled">
+        N: <input type="text" v-model="bband.n" style="width: 50px;"/>
+        K: <input type="text" v-model="bband.k" style="width: 50px;"/>
+      </form>
+    </div>
+
     <v-btn @click="onclick" variant="outlined">Draw candle chart</v-btn>
 
     <combo-chart v-bind:chartType="chartType" v-bind:chartData="candles" v-bind:chartOptions="chartOptions"></combo-chart>
@@ -82,6 +91,14 @@ export default {
         ema1: [],
         ema2: [],
         ema3: [],
+      }, 
+      bband: {
+        n: 20, 
+        k: 2,
+        enabled: false,
+        bbup: [],
+        bbmid: [],
+        bbdown: [],
       }
     }
   },
@@ -202,6 +219,63 @@ export default {
             }
             console.log(this.candles)
             
+
+
+
+        } else if ( this.bband.enabled === true ) {
+          // BBandsを有効にする場合
+            header.push('bbup', 'bbmid', 'bbdown')
+            this.candles.push(header)
+            this.bband.bbup =  []
+            this.bband.bbmid = []
+            this.bband.bbdown = []
+
+            if ( data.bbands[0] != "undefined" ) {
+              this.bband.bbup = data.bbands.up
+            }
+
+            if (data.bbands[1] != "undefined") {
+              this.bband.bbmid = data.bbands.mid
+            }
+
+            if (data.bbands[2] != "undefined") {
+              this.bband.bbdown = data.bbands.down
+            }
+
+            for (let candle of data.candles) {
+              this.candles.push(
+                [
+                  candle.time, 
+                  parseFloat(candle.low), 
+                  parseFloat(candle.open), 
+                  parseFloat(candle.close), 
+                  parseFloat(candle.high), 
+                  parseFloat(candle.swap),
+                  0,
+                  0,
+                  0
+                ]
+              )
+            }
+
+            for (let i = 1; i < this.candles.length; i++) {
+              this.candles[i][6] = parseFloat(this.bband.bbup[i-1]);
+              this.candles[i][7] = parseFloat(this.bband.bbmid[i-1]);
+              this.candles[i][8] = parseFloat(this.bband.bbdown[i-1]);
+              if (this.candles[i][6] == 0) {
+                this.candles[i][6] = null
+              }
+
+              if (this.candles[i][7] == 0) {
+                this.candles[i][7] = null
+              }
+
+              if (this.candles[i][8] == 0) {
+                this.candles[i][8] = null
+              }
+            }
+
+            console.log(this.bband.bbup)
 
 
 
