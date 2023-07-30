@@ -56,6 +56,30 @@ func apiCandleHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// SMA
+	periodStr1 := r.URL.Query().Get("period1")
+	periodStr2 := r.URL.Query().Get("period2")
+	periodStr3 := r.URL.Query().Get("period3")
+
+	period1, err := strconv.Atoi(periodStr1)
+	if err != nil || period1 < 0 || periodStr1 == "" {
+		period1 = 7
+	}
+
+	period2, err := strconv.Atoi(periodStr2)
+	if err != nil || period2 < 0 || periodStr2 == "" {
+		period2 = 14
+	}
+
+	period3, err := strconv.Atoi(periodStr3)
+	if err != nil || period3 < 0 || periodStr3 == "" {
+		period3 = 25
+	}
+
+	df.AddSma(period1)
+	df.AddSma(period2)
+	df.AddSma(period3)
+
 	// CORSの設定
 	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5500")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
