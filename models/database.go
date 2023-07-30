@@ -17,7 +17,10 @@ import (
 
 var DbConnection *sql.DB
 
-const tableName = "USD_JPY_1d"
+const (
+	tableName             = "USD_JPY_1d"
+	signalEventsTableName = "signal_events"
+)
 
 func init() {
 	var err error
@@ -41,6 +44,22 @@ func init() {
 	if err != nil {
 		log.Fatalln("Error occuredd while creating database table: ", err)
 	}
+
+	c := fmt.Sprintf(`
+	CREATE TABLE IF NOT EXISTS %s (
+		time TIMESTAMP PRIMARY KEY NOT NULL,
+		currency_code VARCHAR,
+		side VARCHAR,
+		price FLOAT,
+		size FLOAT)
+	`, signalEventsTableName)
+
+	_, err = DbConnection.Exec(c)
+
+	if err != nil {
+		log.Fatalln("error occured while creating table:", err)
+	}
+
 }
 
 // CSVファイルから為替データの流し込み

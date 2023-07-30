@@ -8,12 +8,13 @@ import (
 
 // データベースから指定した条件のcandleを格納するための型
 type DataFrameCandle struct {
-	CurrencyCode string   `json:"currency_code"`
-	Duration     string   `json:"duration"`
-	Candles      []Candle `json:"candles"`
-	Smas         []Sma    `json:"smas,omitempty"`
-	Emas         []Ema    `json:"emas,omitempty"`
-	BBands       *BBands  `json:"bbands,omitempty"`
+	CurrencyCode string        `json:"currency_code"`
+	Duration     string        `json:"duration"`
+	Candles      []Candle      `json:"candles"`
+	Signals      *SignalEvents `json:"signals,omitempty"`
+	Smas         []Sma         `json:"smas,omitempty"`
+	Emas         []Ema         `json:"emas,omitempty"`
+	BBands       *BBands       `json:"bbands,omitempty"`
 }
 
 // technical用の型
@@ -84,6 +85,14 @@ func (df *DataFrameCandle) Swaps() []int {
 	return s
 }
 
+func (df *DataFrameCandle) MidPrices() []float64 {
+	s := make([]float64, len(df.Candles))
+	for i, v := range df.Candles {
+		s[i] = (v.High + v.Low) / 2
+	}
+	return s
+}
+
 // technicalの定義
 
 // SMA
@@ -131,4 +140,14 @@ func (df *DataFrameCandle) AddBBands(n int, k float64) bool {
 		return true
 	}
 	return false
+}
+
+// 売買ルールの指定
+
+func (df *DataFrameCandle) BuyRule() bool {
+	return true // temporary
+}
+
+func (df *DataFrameCandle) SellRule() bool {
+	return true // temporary
 }

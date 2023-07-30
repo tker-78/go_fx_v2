@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"example.com/tker-78/fx2/config"
@@ -100,7 +101,7 @@ func GetCandlesByBetween(start, end time.Time) (*DataFrameCandle, error) {
 
 	rows, err := DbConnection.Query(cmd, startDate, endDate)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("error occured while calling GetCandlesByBetween", err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -110,6 +111,36 @@ func GetCandlesByBetween(start, end time.Time) (*DataFrameCandle, error) {
 	dfCandle.Duration = config.Config.Duration
 	for rows.Next() {
 		candle := Candle{}
+		rows.Scan(&candle.Time, &candle.Open, &candle.High, &candle.Low, &candle.Close, &candle.Swap)
+		dfCandle.Candles = append(dfCandle.Candles, candle)
+	}
+	return dfCandle, err
+}
+
+// 指定した日付以降のDataFrameCandleを返す
+func GetCandlesAfterTime(dateTime time.Time) (*DataFrameCandle, error) {
+	tableName := GetTableName()
+	startDate := TruncateTimeToDate(dateTime)
+
+	cmd := fmt.Sprintf(`
+		SELECT time, open, high, low, close, swap FROM %s 
+		WHERE time >= $1
+		ORDER BY time 
+	`, tableName)
+
+	rows, err := DbConnection.Query(cmd, startDate)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	dfCandle := &DataFrameCandle{}
+	dfCandle.CurrencyCode = config.Config.CurrencyCode
+	dfCandle.Duration = config.Config.Duration
+
+	for rows.Next() {
+		var candle Candle
 		rows.Scan(&candle.Time, &candle.Open, &candle.High, &candle.Low, &candle.Close, &candle.Swap)
 		dfCandle.Candles = append(dfCandle.Candles, candle)
 	}
