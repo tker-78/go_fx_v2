@@ -44,7 +44,16 @@ func apiCandleHandler(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 
-	if strStart == "" || strEnd == "" {
+	if strStart != "" && strEnd == "" {
+		startDate, err := time.Parse("2006-01-02", strStart)
+		if err != nil {
+			log.Println(err)
+		}
+		df, err = models.GetCandlesAfterTime(startDate)
+		if err != nil {
+			log.Println(err)
+		}
+	} else if strStart == "" && strEnd == "" {
 		df, err = models.GetCandlesByLimit(limit)
 		if err != nil {
 			log.Println(err)
