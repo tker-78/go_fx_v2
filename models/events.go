@@ -77,6 +77,19 @@ func (signals *SignalEvents) LastSignal() *SignalEvent {
 	return s
 }
 
+// signalsを削除する
+func DeleteSignals() bool {
+	cmd := fmt.Sprintf(`
+		DELETE FROM %s
+	`, signalEventsTableName)
+	_, err := DbConnection.Exec(cmd)
+	if err != nil {
+		log.Println("error occured while deleting SignalEvents:", err)
+		return false
+	}
+	return true
+}
+
 // Buy関連メソッド
 
 // signalsに関する購入条件制約

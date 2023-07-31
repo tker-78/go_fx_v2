@@ -27,4 +27,5 @@ func main() {
 	// 	df.Signals.Buy(currentDate, df.Candles[i].High, 1000, true)
 	// }
 	// fmt.Println(df.Signals)
+
 }

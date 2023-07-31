@@ -172,3 +172,8 @@ func (df *DataFrameCandle) BuyRule(timeTime time.Time) bool {
 func (df *DataFrameCandle) SellRule() bool {
 	return true // temporary
 }
+
+// Signalsの追加
+func (df *DataFrameCandle) AddSignals() {
+	// Todo
+}
