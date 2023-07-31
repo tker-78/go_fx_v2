@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"example.com/tker-78/fx2/config"
@@ -33,7 +34,7 @@ type SignalEvent struct {
 }
 
 type SignalEvents struct {
-	Signals []*SignalEvent `json:"signals,omitempty"`
+	Signals []SignalEvent `json:"signals,omitempty"`
 }
 
 // Newメソッド
@@ -49,10 +50,31 @@ func (s *SignalEvent) Save() bool {
 	_, err := DbConnection.Exec(cmd, s.Time.Format(time.RFC3339), s.CurrencyCode, s.Side, s.Price, s.Size)
 
 	if err != nil {
-		log.Println(err)
-		return false
+		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
+			// すでにその日付のデータがある場合は、エラーを表示してtrueを返す
+			log.Println(err)
+			return true
+		}
 	}
 	return true
+}
+
+// 最新のsignalを取得する
+func (signals *SignalEvents) LastSignal() *SignalEvent {
+	cmd := fmt.Sprintf(`
+	SELECT * FROM (
+		SELECT * FROM %s
+		ORDER BY time LIMIT 1
+	)`, signalEventsTableName)
+
+	row := DbConnection.QueryRow(cmd)
+	s := &SignalEvent{}
+
+	err := row.Scan(&s.Time, &s.CurrencyCode, &s.Side, &s.Price, &s.Size)
+	if err != nil {
+		log.Println(err)
+	}
+	return s
 }
 
 // Buy関連メソッド
@@ -64,13 +86,13 @@ func (signals *SignalEvents) CanBuy() bool {
 	return true //temporary
 }
 
-func (signals *SignalEvents) Buy(dataTime time.Time, price, size float64, save bool) bool {
+func (signals *SignalEvents) Buy(dateTime time.Time, price, size float64, save bool) bool {
 	if !signals.CanBuy() {
 		return false
 	}
 
 	signalEvent := SignalEvent{
-		Time:         dataTime,
+		Time:         dateTime,
 		CurrencyCode: config.Config.CurrencyCode,
 		Side:         "BUY",
 		Price:        price,
@@ -80,6 +102,8 @@ func (signals *SignalEvents) Buy(dataTime time.Time, price, size float64, save b
 	if save {
 		signalEvent.Save()
 	}
+
+	signals.Signals = append(signals.Signals, signalEvent)
 
 	return true // temporary
 }
@@ -109,6 +133,8 @@ func (signals *SignalEvents) Sell(dateTime time.Time, price, size float64, save 
 	if save {
 		signalEvent.Save()
 	}
+
+	signals.Signals = append(signals.Signals, signalEvent)
 
 	return true // temporary
 }

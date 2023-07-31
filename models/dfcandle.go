@@ -6,6 +6,12 @@ import (
 	"github.com/markcheno/go-talib"
 )
 
+/*
+データベースからのcandleデータの抽出と、
+売買ルールの指定はDataDrameCandleで定義する
+
+*/
+
 // データベースから指定した条件のcandleを格納するための型
 type DataFrameCandle struct {
 	CurrencyCode string        `json:"currency_code"`
@@ -143,9 +149,24 @@ func (df *DataFrameCandle) AddBBands(n int, k float64) bool {
 }
 
 // 売買ルールの指定
+// この引数のtimeTimeを1日ごとに送ることで、シミュレーションができる
+func (df *DataFrameCandle) BuyRule(timeTime time.Time) bool {
+	if !df.Signals.CanBuy() {
+		return false
+	}
 
-func (df *DataFrameCandle) BuyRule() bool {
-	return true // temporary
+	candle := GetCandle(timeTime)
+	/*
+		前回の購入金額よりも1円下がったら追加購入する LastSignal()メソッドで判定
+		購入回数は10回まで
+
+	*/
+	if candle.Low < df.Signals.LastSignal().Price-1 && len(df.Signals.Signals) < 10 {
+		return true
+	} else {
+		return false
+	}
+
 }
 
 func (df *DataFrameCandle) SellRule() bool {
