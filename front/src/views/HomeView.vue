@@ -41,6 +41,8 @@
     <v-btn @click="onclick" variant="outlined">Draw candle chart</v-btn>
 
     <combo-chart v-bind:chartType="chartType" v-bind:chartData="candles" v-bind:chartOptions="chartOptions"></combo-chart>
+
+    <signal-events :signals="signals[0]"></signal-events>
   </div>
 </template>
 
@@ -48,11 +50,13 @@
 // @ is an alias to /src
 // import CandleChart from '@/components/CandleChart.vue'
 import ComboChart from '@/components/ComboChart.vue'
+import SignalEvents from '@/components/SignalEvents.vue'
 
 export default {
   name: 'HomeView',
   components: {
-    ComboChart
+    ComboChart,
+    SignalEvents
   },
   data() {
     return {
@@ -99,7 +103,15 @@ export default {
         bbup: [],
         bbmid: [],
         bbdown: [],
-      }
+      },
+      signals: [],
+      signal: {
+        time: "",
+        currency_code: "",
+        side: "",
+        price: 0,
+        size: 0,
+      },
     }
   },
   methods: {
@@ -286,8 +298,16 @@ export default {
               [candle.time, parseFloat(candle.low), parseFloat(candle.open), parseFloat(candle.close), parseFloat(candle.high), parseFloat(candle.swap)]
             )
           }}
+
+        this.signals = []
+        this.signals.push(data.signals.signals)
+        console.log(this.signals[0])
+
       })
     }, 
+  },
+  deleteSignals() {
+    // todo
   }
 }
 </script>
@@ -296,6 +316,7 @@ export default {
   .container {
     margin-top: 20px;
     height: 800px;
+    margin-bottom: 50px;
   }
 
   .inputarea {
@@ -307,5 +328,7 @@ export default {
     border: 1px solid gray;
     border-radius: 4px;
   }
+
+
   
 </style>
