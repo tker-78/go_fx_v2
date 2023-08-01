@@ -77,6 +77,32 @@ func (signals *SignalEvents) LastSignal() *SignalEvent {
 	return s
 }
 
+// 全てのsignalEventをデータベースから読み取る
+func GetAllSignals() (*SignalEvents, error) {
+	cmd := fmt.Sprintf(`
+	SELECT * FROM %s
+	`, signalEventsTableName)
+
+	rows, err := DbConnection.Query(cmd)
+	if err != nil {
+		log.Println("error occured while querying Signals:", err)
+		return nil, err
+	}
+
+	signalEvents := &SignalEvents{}
+	for rows.Next() {
+		s := SignalEvent{}
+		err = rows.Scan(&s.Time, &s.CurrencyCode, &s.Side, &s.Price, &s.Size)
+		if err != nil {
+			log.Println("error occured while scanning:", err)
+			return nil, err
+		}
+
+		signalEvents.Signals = append(signalEvents.Signals, s)
+	}
+	return signalEvents, err
+}
+
 // signalsを削除する
 func DeleteSignals() bool {
 	cmd := fmt.Sprintf(`

@@ -173,7 +173,13 @@ func (df *DataFrameCandle) SellRule() bool {
 	return true // temporary
 }
 
-// Signalsの追加
-func (df *DataFrameCandle) AddSignals() {
+// 全てのSignalsをデータベースから読み込んで、dfに与える
+func (df *DataFrameCandle) AddSignals() bool {
 	// Todo
+	signals, err := GetAllSignals()
+	if err != nil {
+		return false
+	}
+	df.Signals = signals
+	return true
 }
