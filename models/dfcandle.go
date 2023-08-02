@@ -169,8 +169,25 @@ func (df *DataFrameCandle) BuyRule(timeTime time.Time) bool {
 
 }
 
-func (df *DataFrameCandle) SellRule() bool {
+func (df *DataFrameCandle) CheckSell() bool {
 	return true // temporary
+}
+
+func (df *DataFrameCandle) ExeSimWithStartDate() bool {
+	startCandle := df.Candles[0]
+	df.Signals.Buy(startCandle.Time, startCandle.Mid(), 1000, true)
+
+	for i := 1; i < len(df.Candles); i++ {
+		currentCandle := df.Candles[i]
+		if currentCandle.Low < df.Signals.LastSignal().Price-1 && len(df.Signals.Signals) < 10 {
+			df.Signals.Buy(currentCandle.Time, df.Signals.LastSignal().Price-1, 1000, true)
+		} else if df.CheckSell() {
+			// sell条件に合致したらtrueを返して終了する
+			return true
+		}
+	}
+	return true
+
 }
 
 // 全てのSignalsをデータベースから読み込んで、dfに与える

@@ -1,12 +1,17 @@
 package main
 
-import "example.com/tker-78/fx2/controllers"
+import (
+	"fmt"
+	"time"
+
+	"example.com/tker-78/fx2/models"
+)
 
 func main() {
 	// 初回のみの読み込み
 	// models.LoadCSV()
 
-	controllers.StartServer()
+	// controllers.StartServer()
 
 	/*
 		以降はデバッグ用temporary code
@@ -18,14 +23,15 @@ func main() {
 	// end := time.Date(2011, 05, 25, 0, 0, 0, 0, time.UTC)
 	// fmt.Println(models.GetCandlesByBetween(start, end))
 
-	// df, _ := models.GetCandlesByLimit(10)
-	// df.Signals = models.NewSignalEvents()
+	df, _ := models.GetCandlesByLimit(10)
+	df.Signals = models.NewSignalEvents()
 
-	// var startTime time.Time = time.Date(2022, 12, 02, 00, 00, 00, 00, time.UTC)
-	// for i := 0; i < 10; i++ {
-	// 	currentDate := startTime.AddDate(0, 0, i)
-	// 	df.Signals.Buy(currentDate, df.Candles[i].High, 1000, true)
-	// }
-	// fmt.Println(df.Signals)
+	var startTime time.Time = time.Date(2022, 12, 02, 00, 00, 00, 00, time.UTC)
+	for i := 0; i < 10; i++ {
+		currentDate := startTime.AddDate(0, 0, i)
+		df.Signals.Buy(currentDate, df.Candles[i].High, 1000, true)
+	}
+	fmt.Println(df.Signals)
 
+	fmt.Println(df.Signals.Profit())
 }

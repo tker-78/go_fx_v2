@@ -103,6 +103,28 @@ func GetAllSignals() (*SignalEvents, error) {
 	return signalEvents, err
 }
 
+// Signalsの利益/損失を返す
+// Todo:
+func (signals *SignalEvents) Profit() float64 {
+	cmd := fmt.Sprintf(`
+		SELECT AVG(price) FROM %s WHERE side = 'BUY';`, signalEventsTableName)
+
+	row := DbConnection.QueryRow(cmd)
+	var avg_buy float64
+	row.Scan(&avg_buy)
+
+	c := fmt.Sprintf(`
+	SELECT AVG(price) FROM %s WHERE side = 'SELL';
+	`, signalEventsTableName)
+
+	row = DbConnection.QueryRow(c)
+	var avg_sell float64
+	row.Scan(&avg_sell)
+
+	return avg_buy - avg_sell
+
+}
+
 // signalsを削除する
 func DeleteSignals() bool {
 	cmd := fmt.Sprintf(`

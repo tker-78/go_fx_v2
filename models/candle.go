@@ -17,6 +17,10 @@ type Candle struct {
 	Swap  int       `json:"swap"`
 }
 
+func (candle Candle) Mid() float64 {
+	return (candle.High + candle.Low) / 2
+}
+
 // ex) usd_jpy_1d
 func GetTableName() string {
 	currency_code := config.Config.CurrencyCode
