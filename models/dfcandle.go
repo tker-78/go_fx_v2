@@ -169,21 +169,31 @@ func (df *DataFrameCandle) BuyRule(timeTime time.Time) bool {
 
 }
 
-func (df *DataFrameCandle) CheckSell() bool {
-	return true // temporary
+func (df *DataFrameCandle) CheckSell(currentPrice float64) bool {
+	if df.Signals.Profit(currentPrice) < -50000 || df.Signals.Profit(currentPrice) > 30000 {
+		return true
+	} else {
+		return false
+	}
 }
 
+// Todo: swapの計算を含める
 func (df *DataFrameCandle) ExeSimWithStartDate() bool {
+	DeleteSignals()
 	startCandle := df.Candles[0]
 	df.Signals.Buy(startCandle.Time, startCandle.Mid(), 1000, true)
 
 	for i := 1; i < len(df.Candles); i++ {
+		if df.Signals.LastSignal().Side == "SELL" {
+			break
+		}
 		currentCandle := df.Candles[i]
 		if currentCandle.Low < df.Signals.LastSignal().Price-1 && len(df.Signals.Signals) < 10 {
 			df.Signals.Buy(currentCandle.Time, df.Signals.LastSignal().Price-1, 1000, true)
-		} else if df.CheckSell() {
-			// sell条件に合致したらtrueを返して終了する
-			return true
+		} else if df.CheckSell(currentCandle.High) { // 利益が出る側での売却
+			df.Signals.Sell(currentCandle.Time, currentCandle.Mid(), true)
+		} else if df.CheckSell(currentCandle.Low) { //損失が出る側での売却
+			df.Signals.Sell(currentCandle.Time, currentCandle.Low, true)
 		}
 	}
 	return true

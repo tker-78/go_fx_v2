@@ -62,10 +62,9 @@ func (s *SignalEvent) Save() bool {
 // 最新のsignalを取得する
 func (signals *SignalEvents) LastSignal() *SignalEvent {
 	cmd := fmt.Sprintf(`
-	SELECT * FROM (
 		SELECT * FROM %s
-		ORDER BY time LIMIT 1
-	)`, signalEventsTableName)
+		ORDER BY time DESC LIMIT 1
+	`, signalEventsTableName)
 
 	row := DbConnection.QueryRow(cmd)
 	s := &SignalEvent{}
@@ -104,25 +103,38 @@ func GetAllSignals() (*SignalEvents, error) {
 }
 
 // Signalsの利益/損失を返す
-// Todo:
-func (signals *SignalEvents) Profit() float64 {
-	cmd := fmt.Sprintf(`
-		SELECT AVG(price) FROM %s WHERE side = 'BUY';`, signalEventsTableName)
+// Todo: df.CheckSellと連携する
+func (signals *SignalEvents) Profit(currentPrice float64) float64 {
 
-	row := DbConnection.QueryRow(cmd)
-	var avg_buy float64
-	row.Scan(&avg_buy)
+	profit := 0.0
 
-	c := fmt.Sprintf(`
-	SELECT AVG(price) FROM %s WHERE side = 'SELL';
-	`, signalEventsTableName)
+	tmp_amount := 0.0
+	tmp_total_size := 0.0
 
-	row = DbConnection.QueryRow(c)
-	var avg_sell float64
-	row.Scan(&avg_sell)
+	for _, v := range signals.Signals {
+		if v.Side == "BUY" {
+			tmp_amount += v.Size * v.Price
+			tmp_total_size += v.Size
+		} else if v.Side == "SELL" {
+			continue
+		}
+	}
 
-	return avg_buy - avg_sell
+	profit = currentPrice*tmp_total_size - tmp_amount
 
+	return profit
+}
+
+// BUYの建玉数を返す
+func (signals *SignalEvents) TotalBuySize() float64 {
+	total_size := 0.0
+
+	for _, v := range signals.Signals {
+		if v.Side == "BUY" {
+			total_size += v.Size
+		}
+	}
+	return total_size
 }
 
 // signalsを削除する
@@ -178,7 +190,7 @@ func (signals *SignalEvents) CanSell() bool {
 	return true //temporary
 }
 
-func (signals *SignalEvents) Sell(dateTime time.Time, price, size float64, save bool) bool {
+func (signals *SignalEvents) Sell(dateTime time.Time, price float64, save bool) bool {
 	if !signals.CanSell() {
 		return false
 	}
@@ -188,7 +200,7 @@ func (signals *SignalEvents) Sell(dateTime time.Time, price, size float64, save 
 		CurrencyCode: config.Config.CurrencyCode,
 		Side:         "SELL",
 		Price:        price,
-		Size:         size,
+		Size:         signals.TotalBuySize(),
 	}
 
 	if save {
