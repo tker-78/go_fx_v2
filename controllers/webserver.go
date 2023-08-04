@@ -111,9 +111,11 @@ func apiCandleHandler(w http.ResponseWriter, r *http.Request) {
 	df.AddBBands(bbn, float64(bbk))
 
 	// Signals関連
-	// Todo: AddSignals()メソッドの定義とdfへのSignalsの追加
+	// Todo: APIとExeSimWithStartDate()の連携
 
+	models.DeleteSignals()
 	df.AddSignals()
+	df.ExeSimWithStartDate()
 
 	// CORSの設定
 	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5500")
