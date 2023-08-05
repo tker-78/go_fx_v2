@@ -43,6 +43,7 @@
     <combo-chart v-bind:chartType="chartType" v-bind:chartData="candles" v-bind:chartOptions="chartOptions"></combo-chart>
 
     <signal-events :signals="signals[0]"></signal-events>
+    <result-table :results="result"></result-table>
   </div>
 </template>
 
@@ -51,12 +52,14 @@
 // import CandleChart from '@/components/CandleChart.vue'
 import ComboChart from '@/components/ComboChart.vue'
 import SignalEvents from '@/components/SignalEvents.vue'
+import ResultTable from '@/components/ResultTable.vue'
 
 export default {
   name: 'HomeView',
   components: {
     ComboChart,
-    SignalEvents
+    SignalEvents,
+    ResultTable,
   },
   data() {
     return {
@@ -112,6 +115,7 @@ export default {
         price: 0,
         size: 0,
       },
+      result: {},
     }
   },
   methods: {
@@ -303,7 +307,10 @@ export default {
         this.signals.push(data.signals.signals)
         console.log(this.signals[0])
 
-      })
+        this.result = data.results
+        console.log(this.result)
+      },
+      )
     }, 
   },
   deleteSignals() {
