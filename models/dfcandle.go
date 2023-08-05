@@ -286,3 +286,15 @@ func (df *DataFrameCandle) AddResults() bool {
 
 	return true
 }
+
+// Resultsをリセットする
+func (df *DataFrameCandle) DeleteResults() bool {
+
+	cmd := fmt.Sprintf(`DELETE FROM %s`, simulationResultsTableName)
+	_, err := DbConnection.Exec(cmd)
+	if err != nil {
+		log.Println("error occured while deleting results:", err)
+		return false
+	}
+	return true
+}

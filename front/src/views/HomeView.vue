@@ -39,11 +39,12 @@
     </div>
 
     <v-btn @click="onclick" variant="outlined">Draw candle chart</v-btn>
+    <v-btn @click="deleteresults" variant="outlined">Reset Results</v-btn>
 
+    <result-table :results="result"></result-table>
     <combo-chart v-bind:chartType="chartType" v-bind:chartData="candles" v-bind:chartOptions="chartOptions"></combo-chart>
 
     <signal-events :signals="signals[0]"></signal-events>
-    <result-table :results="result"></result-table>
   </div>
 </template>
 
@@ -312,10 +313,23 @@ export default {
       },
       )
     }, 
+    deleteresults(){
+      fetch(`http://localhost:8080/api/candle/?reset=true`)
+      .then((response) => {
+        return response.json()
+      })
+      .then((data) => {
+        console.log(data)
+        this.result = {}
+      })
+  }
+
+
   },
   deleteSignals() {
     // todo
-  }
+  },
+
 }
 </script>
 

@@ -118,6 +118,12 @@ func apiCandleHandler(w http.ResponseWriter, r *http.Request) {
 	df.ExeSimWithStartDate()
 	fmt.Println(df.Results)
 
+	// Resultsのリセット
+	reset := r.URL.Query().Get("reset")
+	if reset == "true" {
+		df.DeleteResults()
+	}
+
 	// CORSの設定
 	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5500")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
