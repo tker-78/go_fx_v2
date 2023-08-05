@@ -45,11 +45,11 @@ type BBands struct {
 
 // シミュレーション結果を格納する
 type Result struct {
-	Entry         time.Time     `json:"entry,omitempty"`
-	Exit          time.Time     `json:"exit,omitempty"`
-	CapitalProfit float64       `json:"capital_profit,omitempty"`
-	SwapProfit    float64       `json:"swap_profit,omitempty"`
-	Duration      time.Duration `json:"duration,omitempty"`
+	Entry         time.Time `json:"entry,omitempty"`
+	Exit          time.Time `json:"exit,omitempty"`
+	CapitalProfit float64   `json:"capital_profit,omitempty"`
+	SwapProfit    float64   `json:"swap_profit,omitempty"`
+	Duration      float64   `json:"duration,omitempty"`
 }
 
 // テクニカル分析用のデータの準備
@@ -220,13 +220,15 @@ func (df *DataFrameCandle) ExeSimWithStartDate() bool {
 	}
 
 	// resultに結果を格納
+	d, _ := time.ParseDuration(lastCandleTime.Sub(startCandle.Time).String())
+	days := d.Hours() / 24
 
 	df.Results = append(df.Results, Result{
 		Entry:         startCandle.Time,
 		Exit:          lastCandleTime,
 		CapitalProfit: df.Signals.FinalProfit(),
 		SwapProfit:    total_swap_profit,
-		Duration:      lastCandleTime.Sub(startCandle.Time),
+		Duration:      days,
 	})
 
 	return true
