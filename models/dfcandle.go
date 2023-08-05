@@ -1,6 +1,8 @@
 package models
 
 import (
+	"fmt"
+	"log"
 	"time"
 
 	"github.com/markcheno/go-talib"
@@ -223,13 +225,17 @@ func (df *DataFrameCandle) ExeSimWithStartDate() bool {
 	d, _ := time.ParseDuration(lastCandleTime.Sub(startCandle.Time).String())
 	days := d.Hours() / 24
 
-	df.Results = append(df.Results, Result{
+	result := Result{
 		Entry:         startCandle.Time,
 		Exit:          lastCandleTime,
 		CapitalProfit: df.Signals.FinalProfit(),
 		SwapProfit:    total_swap_profit,
 		Duration:      days,
-	})
+	}
+
+	result.Save()
+
+	df.AddResults()
 
 	return true
 
@@ -247,7 +253,36 @@ func (df *DataFrameCandle) AddSignals() bool {
 }
 
 // Signalsの内容からシミュレーションの結果を分析して、Resultsに入れる
+func (result *Result) Save() bool {
+	cmd := fmt.Sprintf(`
+	INSERT INTO %s (entry, exit, capital_profit, swap_profit, duration) VALUES ($1, $2, $3, $4, $5)
+	`, simulationResultsTableName)
+
+	_, err := DbConnection.Exec(cmd, result.Entry, result.Exit, result.CapitalProfit, result.SwapProfit, result.Duration)
+	if err != nil {
+		log.Println("error occured while saving result:", err)
+		return false
+	}
+	return true
+}
+
+// 全てのResultsをデータベースから読み込んで、dfに与える
 func (df *DataFrameCandle) AddResults() bool {
+
+	cmd := fmt.Sprintf(`SELECT * FROM %s`, simulationResultsTableName)
+
+	rows, err := DbConnection.Query(cmd)
+	if err != nil {
+		log.Println("error occured while querying for simuration results:", err)
+		return false
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		r := Result{}
+		rows.Scan(&r.Entry, &r.Exit, &r.CapitalProfit, &r.SwapProfit, &r.Duration)
+		df.Results = append(df.Results, r)
+	}
 
 	return true
 }
