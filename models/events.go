@@ -109,20 +109,50 @@ func (signals *SignalEvents) Profit(currentPrice float64) float64 {
 	profit := 0.0
 
 	tmp_amount := 0.0
-	tmp_total_size := 0.0
 
 	for _, v := range signals.Signals {
 		if v.Side == "BUY" {
 			tmp_amount += v.Size * v.Price
-			tmp_total_size += v.Size
 		} else if v.Side == "SELL" {
 			continue
 		}
 	}
 
+	tmp_total_size := signals.TempTotalSize()
 	profit = currentPrice*tmp_total_size - tmp_amount
 
 	return profit
+}
+
+// 現時点の建玉のサイズを返す(BUYで計算)
+func (signals *SignalEvents) TempTotalSize() float64 {
+	tmp_total_size := 0.0
+	for _, v := range signals.Signals {
+		if v.Side == "BUY" {
+			tmp_total_size += v.Size
+		}
+	}
+	return tmp_total_size
+}
+
+func (signals *SignalEvents) FinalProfit() float64 {
+
+	avg_price := 0.0
+	sell_price := 0.0
+
+	tmp := 0.0
+	for _, v := range signals.Signals {
+		if v.Side == "BUY" {
+			tmp += v.Price * v.Size
+		}
+	}
+
+	avg_price = tmp / signals.TempTotalSize()
+
+	sell_price = signals.LastSignal().Price
+
+	final_profit := (sell_price - avg_price) * signals.TotalBuySize()
+	return final_profit
 }
 
 // BUYの建玉数を返す

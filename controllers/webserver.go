@@ -116,6 +116,7 @@ func apiCandleHandler(w http.ResponseWriter, r *http.Request) {
 	models.DeleteSignals()
 	df.AddSignals()
 	df.ExeSimWithStartDate()
+	fmt.Println(df.Results)
 
 	// CORSの設定
 	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5500")

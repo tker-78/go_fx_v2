@@ -18,6 +18,7 @@ type DataFrameCandle struct {
 	Duration     string        `json:"duration"`
 	Candles      []Candle      `json:"candles"`
 	Signals      *SignalEvents `json:"signals,omitempty"`
+	Results      []Result      `json:"results,omitempty"`
 	Smas         []Sma         `json:"smas,omitempty"`
 	Emas         []Ema         `json:"emas,omitempty"`
 	BBands       *BBands       `json:"bbands,omitempty"`
@@ -40,6 +41,15 @@ type BBands struct {
 	Up   []float64 `json:"up,omitempty"`
 	Mid  []float64 `json:"mid,omitempty"`
 	Down []float64 `json:"down,omitempty"`
+}
+
+// シミュレーション結果を格納する
+type Result struct {
+	Entry         time.Time     `json:"entry,omitempty"`
+	Exit          time.Time     `json:"exit,omitempty"`
+	CapitalProfit float64       `json:"capital_profit,omitempty"`
+	SwapProfit    float64       `json:"swap_profit,omitempty"`
+	Duration      time.Duration `json:"duration,omitempty"`
 }
 
 // テクニカル分析用のデータの準備
@@ -169,8 +179,8 @@ func (df *DataFrameCandle) BuyRule(timeTime time.Time) bool {
 
 }
 
-func (df *DataFrameCandle) CheckSell(currentPrice float64) bool {
-	if df.Signals.Profit(currentPrice) < -50000 || df.Signals.Profit(currentPrice) > 30000 {
+func (df *DataFrameCandle) CheckSell(currentPrice, swapProfit float64) bool {
+	if df.Signals.Profit(currentPrice)+swapProfit < -50000 || df.Signals.Profit(currentPrice)+swapProfit > 30000 {
 		return true
 	} else {
 		return false
@@ -179,23 +189,46 @@ func (df *DataFrameCandle) CheckSell(currentPrice float64) bool {
 
 // Todo: swapの計算を含める
 func (df *DataFrameCandle) ExeSimWithStartDate() bool {
+
 	DeleteSignals()
 	startCandle := df.Candles[0]
 	df.Signals.Buy(startCandle.Time, startCandle.Mid(), 1000, true)
 
+	var total_swap_profit float64
+	var lastCandleTime time.Time
 	for i := 1; i < len(df.Candles); i++ {
+		swap_profit := 0.0
+
 		if df.Signals.LastSignal().Side == "SELL" {
 			break
 		}
 		currentCandle := df.Candles[i]
+
+		swap_profit = df.Signals.TempTotalSize() * float64(currentCandle.Swap) / 10000
+
+		total_swap_profit += swap_profit
 		if currentCandle.Low < df.Signals.LastSignal().Price-1 && len(df.Signals.Signals) < 10 {
 			df.Signals.Buy(currentCandle.Time, df.Signals.LastSignal().Price-1, 1000, true)
-		} else if df.CheckSell(currentCandle.High) { // 利益が出る側での売却
+		} else if df.CheckSell(currentCandle.High, total_swap_profit) { // 利益が出る側での売却
 			df.Signals.Sell(currentCandle.Time, currentCandle.Mid(), true)
-		} else if df.CheckSell(currentCandle.Low) { //損失が出る側での売却
+			lastCandleTime = currentCandle.Time
+		} else if df.CheckSell(currentCandle.Low, total_swap_profit) { //損失が出る側での売却
 			df.Signals.Sell(currentCandle.Time, currentCandle.Low, true)
+			lastCandleTime = currentCandle.Time
 		}
+
 	}
+
+	// resultに結果を格納
+
+	df.Results = append(df.Results, Result{
+		Entry:         startCandle.Time,
+		Exit:          lastCandleTime,
+		CapitalProfit: df.Signals.FinalProfit(),
+		SwapProfit:    total_swap_profit,
+		Duration:      lastCandleTime.Sub(startCandle.Time),
+	})
+
 	return true
 
 }
@@ -208,5 +241,11 @@ func (df *DataFrameCandle) AddSignals() bool {
 		return false
 	}
 	df.Signals = signals
+	return true
+}
+
+// Signalsの内容からシミュレーションの結果を分析して、Resultsに入れる
+func (df *DataFrameCandle) AddResults() bool {
+
 	return true
 }

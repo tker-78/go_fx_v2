@@ -18,8 +18,9 @@ import (
 var DbConnection *sql.DB
 
 const (
-	tableName             = "USD_JPY_1d"
-	signalEventsTableName = "signal_events"
+	tableName                  = "USD_JPY_1d"
+	signalEventsTableName      = "signal_events"
+	simulationResultsTableName = "sim_results"
 )
 
 func init() {
@@ -56,6 +57,21 @@ func init() {
 
 	_, err = DbConnection.Exec(c)
 
+	if err != nil {
+		log.Fatalln("error occured while creating table:", err)
+	}
+
+	c2 := fmt.Sprintf(`
+	CREATE TABLE IF NOT EXISTS %s (
+		entry TIMESTAMP PRIMARY KEY NOT NULL, 
+		exit TIMESTAMP,
+		capital_profit FLOAT,
+		swap_profit FLOAT,
+		duration VARCHAR
+	)
+	`, simulationResultsTableName)
+
+	_, err = DbConnection.Exec(c2)
 	if err != nil {
 		log.Fatalln("error occured while creating table:", err)
 	}
