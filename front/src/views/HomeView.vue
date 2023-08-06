@@ -78,7 +78,7 @@ export default {
         width: '100%',
         height: 800,
       },
-      limit: 40,
+      limit: 100,
       startDate: "",
       endDate: "",
       candles: [],
