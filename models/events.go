@@ -155,6 +155,28 @@ func (signals *SignalEvents) FinalProfit() float64 {
 	return final_profit
 }
 
+// 決済する価格を返す
+func (signals *SignalEvents) SellPrice(line, swap float64) float64 {
+
+	tmp := 0.0
+	for _, v := range signals.Signals {
+		if v.Side == "BUY" {
+			tmp += v.Price * v.Size
+		}
+	}
+	avgPrice := tmp / signals.TempTotalSize()
+
+	// line - swap = 必要なprofit
+	profit := line - swap
+
+	size := signals.TotalBuySize()
+
+	sellRange := profit / size
+
+	return avgPrice + sellRange
+
+}
+
 // BUYの建玉数を返す
 func (signals *SignalEvents) TotalBuySize() float64 {
 	total_size := 0.0

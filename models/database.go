@@ -82,6 +82,7 @@ func init() {
 func LoadCSV() {
 	c := fmt.Sprintf(`
 		INSERT INTO %s (time, open, high, low, close, swap) VALUES ($1, $2, $3, $4, $5, $6)
+		ON CONFLICT DO NOTHING
 	`, tableName)
 
 	// dataフォルダに格納しているファイルすべてのファイルパスをpathsに格納する

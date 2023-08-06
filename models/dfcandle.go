@@ -209,13 +209,24 @@ func (df *DataFrameCandle) ExeSimWithStartDate() bool {
 		swap_profit = df.Signals.TempTotalSize() * float64(currentCandle.Swap) / 10000
 
 		total_swap_profit += swap_profit
+
+		currentDuration, err := time.ParseDuration(currentCandle.Time.Sub(df.Signals.LastSignal().Time).String())
+		if err != nil {
+			log.Println("error occured while parsing duration from last signal", err)
+		}
+		currentDurationFromLastSignal := currentDuration.Hours() / 24
+
 		if currentCandle.Low < df.Signals.LastSignal().Price-1 && len(df.Signals.Signals) < 10 {
 			df.Signals.Buy(currentCandle.Time, df.Signals.LastSignal().Price-1, 1000, true)
+		} else if currentDurationFromLastSignal > 20 && len(df.Signals.Signals) < 10 {
+			df.Signals.Buy(currentCandle.Time, currentCandle.Mid(), 1000, true)
 		} else if df.CheckSell(currentCandle.High, total_swap_profit) { // 利益が出る側での売却
-			df.Signals.Sell(currentCandle.Time, currentCandle.Mid(), true)
+			// todo: 利益が30000ぴったりで売却できない状態になっている。 Mid()で売却することにしているため。
+			df.Signals.Sell(currentCandle.Time, df.Signals.SellPrice(30000, total_swap_profit), true)
 			lastCandleTime = currentCandle.Time
 		} else if df.CheckSell(currentCandle.Low, total_swap_profit) { //損失が出る側での売却
-			df.Signals.Sell(currentCandle.Time, currentCandle.Low, true)
+			// todo: 損失が50000ぴったりで売却できない状態になっている。 Lowで売却することにしているため。
+			df.Signals.Sell(currentCandle.Time, df.Signals.SellPrice(-50000, total_swap_profit), true)
 			lastCandleTime = currentCandle.Time
 		}
 
