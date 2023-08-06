@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"log"
+	"math"
 	"time"
 
 	"github.com/markcheno/go-talib"
@@ -218,14 +219,12 @@ func (df *DataFrameCandle) ExeSimWithStartDate() bool {
 
 		if currentCandle.Low < df.Signals.LastSignal().Price-1 && len(df.Signals.Signals) < 10 {
 			df.Signals.Buy(currentCandle.Time, df.Signals.LastSignal().Price-1, 1000, true)
-		} else if currentDurationFromLastSignal > 20 && len(df.Signals.Signals) < 10 {
+		} else if currentDurationFromLastSignal > 15 && len(df.Signals.Signals) < 10 {
 			df.Signals.Buy(currentCandle.Time, currentCandle.Mid(), 1000, true)
 		} else if df.CheckSell(currentCandle.High, total_swap_profit) { // 利益が出る側での売却
-			// todo: 利益が30000ぴったりで売却できない状態になっている。 Mid()で売却することにしているため。
 			df.Signals.Sell(currentCandle.Time, df.Signals.SellPrice(30000, total_swap_profit), true)
 			lastCandleTime = currentCandle.Time
 		} else if df.CheckSell(currentCandle.Low, total_swap_profit) { //損失が出る側での売却
-			// todo: 損失が50000ぴったりで売却できない状態になっている。 Lowで売却することにしているため。
 			df.Signals.Sell(currentCandle.Time, df.Signals.SellPrice(-50000, total_swap_profit), true)
 			lastCandleTime = currentCandle.Time
 		}
@@ -269,7 +268,7 @@ func (result *Result) Save() bool {
 	INSERT INTO %s (entry, exit, capital_profit, swap_profit, duration) VALUES ($1, $2, $3, $4, $5)
 	`, simulationResultsTableName)
 
-	_, err := DbConnection.Exec(cmd, result.Entry, result.Exit, result.CapitalProfit, result.SwapProfit, result.Duration)
+	_, err := DbConnection.Exec(cmd, result.Entry, result.Exit, math.Round(result.CapitalProfit), math.Round(result.SwapProfit), result.Duration)
 	if err != nil {
 		log.Println("error occured while saving result:", err)
 		return false
