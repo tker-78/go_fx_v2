@@ -190,11 +190,14 @@ func (df *DataFrameCandle) CheckSell(currentPrice, swapProfit float64) bool {
 	}
 }
 
-// Todo: swapの計算を含める
-func (df *DataFrameCandle) ExeSimWithStartDate() bool {
+// Todo: Technicalを用いてエントリーポイントを選択する
+func (df *DataFrameCandle) ChooseStartCandle() Candle {
+	return Candle{}
+}
 
+func (df *DataFrameCandle) ExeSimWithStartDate() bool {
 	DeleteSignals()
-	startCandle := df.Candles[0]
+	startCandle := df.Candles[0] // Todo: このエントリーポイントを、technicalを使って抽出できるようにする
 	df.Signals.Buy(startCandle.Time, startCandle.Mid(), 1000, true)
 
 	var total_swap_profit float64

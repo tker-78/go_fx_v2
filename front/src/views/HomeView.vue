@@ -234,7 +234,6 @@ export default {
                 this.candles[i][8] = null
               }
             }
-            console.log(this.candles)
             
 
 
@@ -292,7 +291,6 @@ export default {
               }
             }
 
-            console.log(this.bband.bbup)
 
 
 
@@ -302,14 +300,15 @@ export default {
             this.candles.push(
               [candle.time, parseFloat(candle.low), parseFloat(candle.open), parseFloat(candle.close), parseFloat(candle.high), parseFloat(candle.swap)]
             )
-          }}
+          }
+        }
 
         this.signals = []
         this.signals.push(data.signals.signals)
-        console.log(this.signals[0])
+
+
 
         this.result = data.results
-        console.log(this.result)
       },
       )
     }, 
