@@ -212,13 +212,19 @@ func (df *DataFrameCandle) CheckSell(currentPrice, swapProfit float64) bool {
 }
 
 // Todo: Technicalを用いてエントリーポイントを選択する
-func (df *DataFrameCandle) ChooseStartCandle() Candle {
+func (df *DataFrameCandle) ChooseStartCandleWithStochRSI() Candle {
+
+	for i := 0; i < len(df.Candles); i++ {
+		if df.StochRSIs.FastDPeriod[i] < 50 && df.StochRSIs.FastDPeriod[i+1] >= 50 {
+			return df.Candles[i+1]
+		}
+	}
 	return Candle{}
 }
 
 func (df *DataFrameCandle) ExeSimWithStartDate() bool {
 	DeleteSignals()
-	startCandle := df.Candles[0] // Todo: このエントリーポイントを、technicalを使って抽出できるようにする
+	startCandle := df.ChooseStartCandleWithStochRSI() // Todo: このエントリーポイントを、technicalを使って抽出できるようにする
 	df.Signals.Buy(startCandle.Time, startCandle.Mid(), 1000, true)
 
 	var total_swap_profit float64
