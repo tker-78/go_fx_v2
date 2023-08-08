@@ -43,6 +43,7 @@
 
     <result-table :results="result"></result-table>
     <combo-chart v-bind:chartType="chartType" v-bind:chartData="candles" v-bind:chartOptions="chartOptions"></combo-chart>
+    <line-chart class="stoch_rsi" :data="stoch_rsi.values" :chartOptions="chartOptions2" ></line-chart>
 
     <signal-events :signals="signals[0]"></signal-events>
   </div>
@@ -50,7 +51,7 @@
 
 <script>
 // @ is an alias to /src
-// import CandleChart from '@/components/CandleChart.vue'
+import LineChart from '@/components/LineChart.vue'
 import ComboChart from '@/components/ComboChart.vue'
 import SignalEvents from '@/components/SignalEvents.vue'
 import ResultTable from '@/components/ResultTable.vue'
@@ -61,6 +62,7 @@ export default {
     ComboChart,
     SignalEvents,
     ResultTable,
+    LineChart
   },
   data() {
     return {
@@ -77,6 +79,11 @@ export default {
         },
         width: '100%',
         height: 800,
+      },
+      chartOptions2: {
+        title: "Stochastic RSI",
+        width:  '100%',
+        height: 150,
       },
       limit: 100,
       startDate: "",
@@ -107,6 +114,10 @@ export default {
         bbup: [],
         bbmid: [],
         bbdown: [],
+      },
+      stoch_rsi: {
+        enabled: true,
+        values: [],
       },
       signals: [],
       signal: {
@@ -309,6 +320,27 @@ export default {
 
 
         this.result = data.results
+
+
+        if ( this.stoch_rsi.enabled === true ) {
+          // ストキャスティクスRSIを有効にする場合
+          this.stoch_rsi.values.push(['date', 'fastK', 'fastD'])
+          for (let i = 0; i < data.candles.length; i++) {
+            this.stoch_rsi.values.push(
+              [
+                data.candles[i].time,
+                data.stoch_rsi.fast_period[i],
+                data.stoch_rsi.fast_d_period[i]
+              ]
+            )
+
+          }
+
+          console.log(this.stoch_rsi.values)
+
+
+
+        }
       },
       )
     }, 
@@ -347,6 +379,12 @@ export default {
   input {
     border: 1px solid gray;
     border-radius: 4px;
+  }
+
+  .stoch_rsi {
+    width: 80%;
+    margin: auto;
+
   }
 
 

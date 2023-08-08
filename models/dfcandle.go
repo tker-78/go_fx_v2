@@ -25,6 +25,7 @@ type DataFrameCandle struct {
 	Smas         []Sma         `json:"smas,omitempty"`
 	Emas         []Ema         `json:"emas,omitempty"`
 	BBands       *BBands       `json:"bbands,omitempty"`
+	StochRSIs    *StochRSI     `json:"stoch_rsi,omitempty"`
 }
 
 // technical用の型
@@ -44,6 +45,12 @@ type BBands struct {
 	Up   []float64 `json:"up,omitempty"`
 	Mid  []float64 `json:"mid,omitempty"`
 	Down []float64 `json:"down,omitempty"`
+}
+
+type StochRSI struct {
+	FastPeriod  []float64 `json:"fast_period,omitempty"`
+	FastDPeriod []float64 `json:"fast_d_period,omitempty"`
+	MaType      int       `json:"ma_type,omitempty"`
 }
 
 // シミュレーション結果を格納する
@@ -155,6 +162,20 @@ func (df *DataFrameCandle) AddBBands(n int, k float64) bool {
 			Up:   up,
 			Mid:  mid,
 			Down: down,
+		}
+		return true
+	}
+	return false
+}
+
+// Stochastic
+func (df *DataFrameCandle) AddStochastic(Period, FastPeriod, FastDPeriod int) bool {
+	if Period <= len(df.Closes()) {
+		outFastK, outFastD := talib.StochRsi(df.Closes(), Period, FastPeriod, FastDPeriod, 0)
+		df.StochRSIs = &StochRSI{
+			FastPeriod:  outFastK,
+			FastDPeriod: outFastD,
+			MaType:      0,
 		}
 		return true
 	}

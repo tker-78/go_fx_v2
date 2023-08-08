@@ -1,7 +1,6 @@
 <template>
-  <p>This is candle chart</p>
   <GChart
-    :type="chartType"
+    type="LineChart"
     :data="chartData"
     :options="chartOptions"
   ></GChart>
@@ -16,10 +15,6 @@
       GChart
     },
     props: {
-      chartType: {
-        type: String,
-        default: '',
-      },
       chartData: {
         type: Array,
         default: () => {
@@ -35,3 +30,10 @@
     }
   }
 </script>
+
+<style scoped >
+  template {
+    width: 100px;
+  }
+
+</style>

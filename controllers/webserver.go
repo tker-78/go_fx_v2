@@ -110,6 +110,28 @@ func apiCandleHandler(w http.ResponseWriter, r *http.Request) {
 
 	df.AddBBands(bbn, float64(bbk))
 
+	// Stochastic
+	stoPeriodStr := r.URL.Query().Get("stoperiod")
+	stoFastStr := r.URL.Query().Get("stofast")
+	stoDStr := r.URL.Query().Get("stod")
+
+	stoPeriod, err := strconv.Atoi(stoPeriodStr)
+	if err != nil || stoPeriod < 0 || stoPeriodStr == "" {
+		stoPeriod = 9
+	}
+
+	stoFast, err := strconv.Atoi(stoFastStr)
+	if err != nil || stoFast < 0 || stoFastStr == "" {
+		stoFast = 3
+	}
+
+	stoD, err := strconv.Atoi(stoDStr)
+	if err != nil || stoD < 0 || stoDStr == "" {
+		stoD = 3
+	}
+
+	df.AddStochastic(stoPeriod, stoFast, stoD)
+
 	// Signals関連
 	// Todo: APIとExeSimWithStartDate()の連携
 
