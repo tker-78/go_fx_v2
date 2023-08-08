@@ -212,30 +212,30 @@ func (df *DataFrameCandle) CheckSell(currentPrice, swapProfit float64) bool {
 }
 
 // Todo: Technicalを用いてエントリーポイントを選択する
-func (df *DataFrameCandle) ChooseStartCandleWithStochRSI() Candle {
+func (df *DataFrameCandle) ChooseStartCandleNumWithStochRSI() int {
 
-	for i := 0; i < len(df.Candles); i++ {
+	for i := 20; i < len(df.Candles); i++ {
 		if df.StochRSIs.FastDPeriod[i] < 50 && df.StochRSIs.FastDPeriod[i+1] >= 50 {
-			return df.Candles[i+1]
+			return i
 		}
 	}
-	return Candle{}
+	return 0
 }
 
 func (df *DataFrameCandle) ExeSimWithStartDate() bool {
 	DeleteSignals()
-	startCandle := df.ChooseStartCandleWithStochRSI() // Todo: このエントリーポイントを、technicalを使って抽出できるようにする
-	df.Signals.Buy(startCandle.Time, startCandle.Mid(), 1000, true)
+	startCandleNum := df.ChooseStartCandleNumWithStochRSI() // Todo: このエントリーポイントを、technicalを使って抽出できるようにする
+	df.Signals.Buy(df.Candles[startCandleNum].Time, df.Candles[startCandleNum].Mid(), 1000, true)
 
 	var total_swap_profit float64
 	var lastCandleTime time.Time
-	for i := 1; i < len(df.Candles); i++ {
+	for i := 1; i < len(df.Candles)-startCandleNum; i++ {
 		swap_profit := 0.0
 
 		if df.Signals.LastSignal().Side == "SELL" {
 			break
 		}
-		currentCandle := df.Candles[i]
+		currentCandle := df.Candles[startCandleNum+i]
 
 		swap_profit = df.Signals.TempTotalSize() * float64(currentCandle.Swap) / 10000
 
@@ -262,11 +262,11 @@ func (df *DataFrameCandle) ExeSimWithStartDate() bool {
 	}
 
 	// resultに結果を格納
-	d, _ := time.ParseDuration(lastCandleTime.Sub(startCandle.Time).String())
+	d, _ := time.ParseDuration(lastCandleTime.Sub(df.Candles[startCandleNum].Time).String())
 	days := d.Hours() / 24
 
 	result := Result{
-		Entry:         startCandle.Time,
+		Entry:         df.Candles[startCandleNum].Time,
 		Exit:          lastCandleTime,
 		CapitalProfit: df.Signals.FinalProfit(),
 		SwapProfit:    total_swap_profit,

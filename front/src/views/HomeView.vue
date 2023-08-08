@@ -324,6 +324,7 @@ export default {
 
         if ( this.stoch_rsi.enabled === true ) {
           // ストキャスティクスRSIを有効にする場合
+          this.stoch_rsi.values = [] //初期化する
           this.stoch_rsi.values.push(['date', 'fastK', 'fastD'])
           for (let i = 0; i < data.candles.length; i++) {
             this.stoch_rsi.values.push(
