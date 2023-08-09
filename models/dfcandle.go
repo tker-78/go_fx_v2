@@ -211,17 +211,24 @@ func (df *DataFrameCandle) CheckSell(currentPrice, swapProfit float64) bool {
 	}
 }
 
-// Todo: Technicalを用いてエントリーポイントを選択する
+// Technicalを用いてエントリーポイントを選択する todo: 動作が変。最初の立ち上がりを回避したいけど回避できていない.
 func (df *DataFrameCandle) ChooseStartCandleNumWithStochRSI() int {
 
 	for i := 20; i < len(df.Candles); i++ {
 		if df.StochRSIs.FastDPeriod[i] < 50 && df.StochRSIs.FastDPeriod[i+1] >= 50 {
-			return i
+			return i + 1
 		}
 	}
 	return 0
 }
 
+// Todo: Start ~ Endの期間のdataframeを切り出す
+func (df *DataFrameCandle) ExtractDataFrame() *DataFrameCandle {
+
+	return nil
+}
+
+// メインのシミュレーション処理
 func (df *DataFrameCandle) ExeSimWithStartDate() bool {
 	DeleteSignals()
 	startCandleNum := df.ChooseStartCandleNumWithStochRSI() // Todo: このエントリーポイントを、technicalを使って抽出できるようにする
@@ -277,6 +284,15 @@ func (df *DataFrameCandle) ExeSimWithStartDate() bool {
 
 	df.AddResults()
 
+	// CandlesをEntry~Exitの期間で書き換え
+	redf, err := GetCandlesByBetween(df.Results[len(df.Results)-1].Entry.AddDate(0, 0, -30), df.Results[len(df.Results)-1].Exit)
+	if err != nil {
+		log.Println("290", err)
+
+	}
+
+	df.Candles = redf.Candles
+
 	return true
 
 }
@@ -296,6 +312,8 @@ func (df *DataFrameCandle) AddSignals() bool {
 func (result *Result) Save() bool {
 	cmd := fmt.Sprintf(`
 	INSERT INTO %s (entry, exit, capital_profit, swap_profit, duration) VALUES ($1, $2, $3, $4, $5)
+	ON CONFLICT (entry) DO UPDATE
+	SET exit = $2, capital_profit = $3, swap_profit = $4, duration = $5;
 	`, simulationResultsTableName)
 
 	_, err := DbConnection.Exec(cmd, result.Entry, result.Exit, math.Round(result.CapitalProfit), math.Round(result.SwapProfit), result.Duration)

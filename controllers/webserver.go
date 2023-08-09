@@ -133,12 +133,13 @@ func apiCandleHandler(w http.ResponseWriter, r *http.Request) {
 	df.AddStochastic(stoPeriod, stoFast, stoD)
 
 	// Signals関連
-	// Todo: APIとExeSimWithStartDate()の連携
-
 	models.DeleteSignals()
 	df.AddSignals()
 	df.ExeSimWithStartDate()
 	fmt.Println(df.Results)
+
+	// df.ExeSimWithStartDate()でdfを書き換えたので、Stochasticを更新
+	df.AddStochastic(stoPeriod, stoFast, stoD)
 
 	// Resultsのリセット
 	reset := r.URL.Query().Get("reset")
