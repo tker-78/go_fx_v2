@@ -285,9 +285,11 @@ func (df *DataFrameCandle) ExeSimWithStartDate() bool {
 	df.AddResults()
 
 	// CandlesをEntry~Exitの期間で書き換え
+	// Todo: Resultにデータが正しく入っていないと、redf.Candleは[]になる
+
 	redf, err := GetCandlesByBetween(df.Results[len(df.Results)-1].Entry.AddDate(0, 0, -30), df.Results[len(df.Results)-1].Exit)
 	if err != nil {
-		log.Println("290", err)
+		log.Println(err)
 
 	}
 

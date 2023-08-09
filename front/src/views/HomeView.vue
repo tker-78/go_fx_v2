@@ -38,13 +38,19 @@
       </form>
     </div>
 
+    <div class="inputarea">
+      <label>StochasticRSI</label>
+      <form>
+        <input type="checkbox" v-model="stoch_rsi.enabled">
+      </form>
+    </div>
+
     <v-btn @click="onclick" variant="outlined">Draw candle chart</v-btn>
     <v-btn @click="deleteresults" variant="outlined">Reset Results</v-btn>
 
+    <combo-chart v-show="candles != null" v-bind:chartType="chartType" v-bind:chartData="candles" v-bind:chartOptions="chartOptions"></combo-chart>
+    <line-chart v-show="stoch_rsi.enabled" class="stoch_rsi" :data="stoch_rsi.values" :chartOptions="chartOptions2" ></line-chart>
     <result-table :results="result"></result-table>
-    <combo-chart v-bind:chartType="chartType" v-bind:chartData="candles" v-bind:chartOptions="chartOptions"></combo-chart>
-    <line-chart class="stoch_rsi" :data="stoch_rsi.values" :chartOptions="chartOptions2" ></line-chart>
-
     <signal-events :signals="signals[0]"></signal-events>
   </div>
 </template>
@@ -89,6 +95,7 @@ export default {
       startDate: "",
       endDate: "",
       candles: [],
+      candle_enabled: false,
       sma: {
         period1: 7,
         period2: 14,
@@ -116,7 +123,7 @@ export default {
         bbdown: [],
       },
       stoch_rsi: {
-        enabled: true,
+        enabled: false,
         values: [],
       },
       signals: [],
@@ -337,9 +344,6 @@ export default {
 
           }
 
-          console.log(this.stoch_rsi.values)
-
-
 
         }
       },
@@ -358,10 +362,8 @@ export default {
 
 
   },
-  deleteSignals() {
-    // todo
-  },
-
+  computed: {
+  }
 }
 </script>
 
