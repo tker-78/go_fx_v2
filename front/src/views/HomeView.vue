@@ -42,16 +42,24 @@
       <label>StochasticRSI</label>
       <form>
         <input type="checkbox" v-model="stoch_rsi.enabled">
+        Period: <input type="text" v-model="stoch_rsi.period" style="width: 50px;">
+        Fast: <input type="text" v-model="stoch_rsi.fast" style="width: 50px;">
+        D: <input type="text" v-model="stoch_rsi.d" style="width: 50px;">
       </form>
     </div>
 
     <v-btn @click="onclick" variant="outlined">Draw candle chart</v-btn>
     <v-btn @click="deleteresults" variant="outlined">Reset Results</v-btn>
-
-    <combo-chart v-show="candles != null" v-bind:chartType="chartType" v-bind:chartData="candles" v-bind:chartOptions="chartOptions"></combo-chart>
-    <line-chart v-show="stoch_rsi.enabled" class="stoch_rsi" :data="stoch_rsi.values" :chartOptions="chartOptions2" ></line-chart>
-    <result-table :results="result"></result-table>
-    <signal-events :signals="signals[0]"></signal-events>
+    <div class="d-flex">
+      <div style="width: 60%;">
+        <combo-chart v-show="candles != null" v-bind:chartType="chartType" v-bind:chartData="candles" v-bind:chartOptions="chartOptions"></combo-chart>
+        <line-chart v-show="stoch_rsi.enabled" class="stoch_rsi" :data="stoch_rsi.values" :chartOptions="chartOptions2" ></line-chart>
+      </div>
+      <div style="width: 40%;">
+        <result-table :results="result"></result-table>
+        <signal-events :signals="signals[0]"></signal-events>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -124,6 +132,9 @@ export default {
       },
       stoch_rsi: {
         enabled: false,
+        period: 9,
+        fast: 3,
+        d: 3,
         values: [],
       },
       signals: [],
@@ -139,7 +150,8 @@ export default {
   },
   methods: {
     onclick() {
-      fetch(`http://localhost:8080/api/candle/?limit=${this.limit}&start=${this.startDate}&end=${this.endDate}&period1=${this.sma.period1}&period2=${this.sma.period2}&period3=${this.sma.period3}&bbn=${this.bband.n}&bbk=${this.bband.k}`)
+      fetch(`http://localhost:8080/api/candle/
+            ?limit=${this.limit}&start=${this.startDate}&end=${this.endDate}&period1=${this.sma.period1}&period2=${this.sma.period2}&period3=${this.sma.period3}&bbn=${this.bband.n}&bbk=${this.bband.k}&stoperiod=${this.stoch_rsi.period}&stofast=${this.stoch_rsi.fast}&stod=${this.stoch_rsi.d}`)
       .then((response) => {
         return response.json()
       })
@@ -389,6 +401,8 @@ export default {
     margin: auto;
 
   }
+
+  
 
 
   

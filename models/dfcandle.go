@@ -231,7 +231,8 @@ func (df *DataFrameCandle) ExtractDataFrame() *DataFrameCandle {
 // メインのシミュレーション処理
 func (df *DataFrameCandle) ExeSimWithStartDate() bool {
 	DeleteSignals()
-	startCandleNum := df.ChooseStartCandleNumWithStochRSI() // Todo: このエントリーポイントを、technicalを使って抽出できるようにする
+	// startCandleNum := df.ChooseStartCandleNumWithStochRSI()
+	startCandleNum := 0
 	df.Signals.Buy(df.Candles[startCandleNum].Time, df.Candles[startCandleNum].Mid(), 1000, true)
 
 	var total_swap_profit float64
@@ -256,7 +257,7 @@ func (df *DataFrameCandle) ExeSimWithStartDate() bool {
 
 		if currentCandle.Low < df.Signals.LastSignal().Price-1 && len(df.Signals.Signals) < 10 {
 			df.Signals.Buy(currentCandle.Time, df.Signals.LastSignal().Price-1, 1000, true)
-		} else if currentDurationFromLastSignal > 15 && len(df.Signals.Signals) < 10 {
+		} else if currentDurationFromLastSignal > 8 && len(df.Signals.Signals) < 10 {
 			df.Signals.Buy(currentCandle.Time, currentCandle.Mid(), 1000, true)
 		} else if df.CheckSell(currentCandle.High, total_swap_profit) { // 利益が出る側での売却
 			df.Signals.Sell(currentCandle.Time, df.Signals.SellPrice(30000, total_swap_profit), true)
