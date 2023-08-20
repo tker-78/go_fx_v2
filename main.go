@@ -1,12 +1,12 @@
 package main
 
-import "example.com/tker-78/fx2/controllers"
+import "example.com/tker-78/fx2/models"
 
 func main() {
 	// 初回のみの読み込み
-	// models.LoadCSV()
+	models.LoadM1CSV()
 
-	controllers.StartServer()
+	// controllers.StartServer()
 
 	/*
 		以降はデバッグ用temporary code

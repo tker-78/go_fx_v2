@@ -22,17 +22,15 @@ go_fx_v1を再構築する.
 - 日足のトレード専用にする
 - 扱う通貨はUSD/JPYのみ
 - talibのテクニカルを使って、売買ルールを指定する
-- 売買ルールのベースはRubyで構築したトレードシミュレーションと基本は同じにする
-- Frontはおまけ
-  - シミュレーションはバックエンドとデータベースだけで完結させる
-  - Frontに表示したくなったらAPIHandlerを定義して、Vue.jsからAPI呼び出しをするようにする
+- buy, sellを指定した期間で繰り返して、パフォーマンスを計測する
+- 基本はCLIで処理する. Frontに表示したくなったらAPIHandlerを定義して、Vue.jsからAPI呼び出しをするようにする
 
 
 
 その他
 
 - databaseはpostgresql
-- 日足データはクリック証券かな(??)から取ってきたものを使う
+- 日足データはクリック証券(??)から取ってきたものを使う
 
 
 ### config.iniの設定
@@ -180,4 +178,25 @@ startDateを最初の建玉を建てる日付(midPriceで購入)して、
 - 最大10lotまで購入
 - 利益が30%を超えたら売却
 - 利益が-50%を超えたら売却
-- 
+
+
+### 実装メモ
+
+#### 為替情報の流し込み
+
+[histdata.com](https://www.histdata.com)から取ってきた1分足データを使って、
+各種時間足のデータベースを作成する.  
+
+```bash
+$ python3 -m pip install --upgrade pip
+$ pip install xlsx2csv
+```
+
+```bash
+# xlsxファイルをcsvに変換
+$ xlsx2csv DAT_XLSX_USDJPY_M1_2022.xlsx usd_jpy_m1_2022.csv
+```
+
+日足のcsvデータからは、swap情報のみ読み込むことにする.  
+
+

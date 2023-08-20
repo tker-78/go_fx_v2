@@ -18,7 +18,7 @@ import (
 // データベースから指定した条件のcandleを格納するための型
 type DataFrameCandle struct {
 	CurrencyCode string        `json:"currency_code"`
-	Duration     string        `json:"duration"`
+	Duration     time.Duration `json:"duration"`
 	Candles      []Candle      `json:"candles"`
 	Signals      *SignalEvents `json:"signals,omitempty"`
 	Results      []Result      `json:"results,omitempty"`
@@ -222,12 +222,6 @@ func (df *DataFrameCandle) ChooseStartCandleNumWithStochRSI() int {
 	return 0
 }
 
-// Todo: Start ~ Endの期間のdataframeを切り出す
-func (df *DataFrameCandle) ExtractDataFrame() *DataFrameCandle {
-
-	return nil
-}
-
 // メインのシミュレーション処理
 func (df *DataFrameCandle) ExeSimWithStartDate() bool {
 	DeleteSignals()
@@ -284,25 +278,11 @@ func (df *DataFrameCandle) ExeSimWithStartDate() bool {
 	result.Save()
 
 	df.AddResults()
-
-	// CandlesをEntry~Exitの期間で書き換え
-	// Todo: Resultにデータが正しく入っていないと、redf.Candleは[]になる
-
-	redf, err := GetCandlesByBetween(df.Results[len(df.Results)-1].Entry.AddDate(0, 0, -30), df.Results[len(df.Results)-1].Exit)
-	if err != nil {
-		log.Println(err)
-
-	}
-
-	df.Candles = redf.Candles
-
 	return true
-
 }
 
 // 全てのSignalsをデータベースから読み込んで、dfに与える
 func (df *DataFrameCandle) AddSignals() bool {
-	// Todo
 	signals, err := GetAllSignals()
 	if err != nil {
 		return false

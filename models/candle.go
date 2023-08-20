@@ -22,11 +22,11 @@ func (candle Candle) Mid() float64 {
 }
 
 // ex) usd_jpy_1d
-func GetTableName() string {
-	currency_code := config.Config.CurrencyCode
-	duration := config.Config.Duration
-	return currency_code + "_" + duration
-}
+// func GetTableName() string {
+// 	currency_code := config.Config.CurrencyCode
+// 	duration := config.Config.Duration
+// 	return currency_code + "_" + duration
+// }
 
 // 時刻を日付の形式に切り捨てて、RFC3339形式にフォーマットする
 // データベースからの情報読み出し時に使用する
@@ -37,7 +37,7 @@ func TruncateTimeToDate(timeTime time.Time) string {
 
 // candleを一つ返す(日付で指定)
 func GetCandle(timeTime time.Time) *Candle {
-	tableName := GetTableName()
+	tableName := GetTableName("1m")
 	truncatedTime := TruncateTimeToDate(timeTime)
 	cmd := fmt.Sprintf(`
 	SELECT * FROM %s WHERE time = $1
@@ -64,7 +64,7 @@ func GetCandle(timeTime time.Time) *Candle {
 // 指定した期間のDataFrameCandleを返す
 // limitで最新側の取得
 func GetCandlesByLimit(limit int) (*DataFrameCandle, error) {
-	tableName := GetTableName()
+	tableName := GetTableName("1m")
 	cmd := fmt.Sprintf(`
 	SELECT * FROM (
 		SELECT time, open, high, low, close, swap FROM %s 
@@ -82,7 +82,7 @@ func GetCandlesByLimit(limit int) (*DataFrameCandle, error) {
 
 	dfCandle := &DataFrameCandle{}
 	dfCandle.CurrencyCode = config.Config.CurrencyCode
-	dfCandle.Duration = config.Config.Duration
+	dfCandle.Duration = config.Config.TradeDuration
 	for rows.Next() {
 		candle := Candle{}
 		rows.Scan(&candle.Time, &candle.Open, &candle.High, &candle.Low, &candle.Close, &candle.Swap)
@@ -94,7 +94,7 @@ func GetCandlesByLimit(limit int) (*DataFrameCandle, error) {
 // 指定した期間のDataFrameCandleを返す
 // between
 func GetCandlesByBetween(start, end time.Time) (*DataFrameCandle, error) {
-	tableName := GetTableName()
+	tableName := GetTableName("1m")
 	startDate := TruncateTimeToDate(start)
 	endDate := TruncateTimeToDate(end)
 
@@ -112,7 +112,7 @@ func GetCandlesByBetween(start, end time.Time) (*DataFrameCandle, error) {
 
 	dfCandle := &DataFrameCandle{}
 	dfCandle.CurrencyCode = config.Config.CurrencyCode
-	dfCandle.Duration = config.Config.Duration
+	dfCandle.Duration = config.Config.TradeDuration
 	for rows.Next() {
 		candle := Candle{}
 		rows.Scan(&candle.Time, &candle.Open, &candle.High, &candle.Low, &candle.Close, &candle.Swap)
@@ -123,7 +123,7 @@ func GetCandlesByBetween(start, end time.Time) (*DataFrameCandle, error) {
 
 // 指定した日付以降のDataFrameCandleを返す
 func GetCandlesAfterTime(dateTime time.Time) (*DataFrameCandle, error) {
-	tableName := GetTableName()
+	tableName := GetTableName("1m")
 	startDate := TruncateTimeToDate(dateTime)
 
 	cmd := fmt.Sprintf(`
@@ -141,7 +141,7 @@ func GetCandlesAfterTime(dateTime time.Time) (*DataFrameCandle, error) {
 
 	dfCandle := &DataFrameCandle{}
 	dfCandle.CurrencyCode = config.Config.CurrencyCode
-	dfCandle.Duration = config.Config.Duration
+	dfCandle.Duration = config.Config.TradeDuration
 
 	for rows.Next() {
 		var candle Candle
