@@ -1,6 +1,19 @@
 # Go FX V2
 
 
+## front側の起動
+
+```bash
+yarn serve --port 5500
+```
+
+## app側の起動
+
+```bash
+go run main.go
+```
+
+
 ## これはなに
 
 go_fx_v1を再構築する. 
