@@ -38,21 +38,25 @@ func init() {
 		log.Fatalln("Error occured while opening database file: ", err)
 	}
 
-	tableName := GetTableName("1m")
+	// config.Config.Durationsに登録した内容に基づくデータベースを作成する
 
-	cmd := fmt.Sprintf(`
-		CREATE TABLE IF NOT EXISTS %s (
-			time TIMESTAMP PRIMARY KEY NOT NULL,
-			open FLOAT,
-			high FLOAT,
-			low FLOAT,
-			close FLOAT,
-			swap FLOAT)
-	`, tableName)
+	for key, _ := range config.Config.Durations {
+		tableName := GetTableName(key)
 
-	_, err = DbConnection.Exec(cmd)
-	if err != nil {
-		log.Fatalln("Error occuredd while creating database table: ", err)
+		cmd := fmt.Sprintf(`
+			CREATE TABLE IF NOT EXISTS %s (
+				time TIMESTAMP PRIMARY KEY NOT NULL,
+				open FLOAT,
+				high FLOAT,
+				low FLOAT,
+				close FLOAT,
+				swap FLOAT)
+		`, tableName)
+
+		_, err = DbConnection.Exec(cmd)
+		if err != nil {
+			log.Fatalln("Error occuredd while creating database table: ", err)
+		}
 	}
 
 	c := fmt.Sprintf(`
