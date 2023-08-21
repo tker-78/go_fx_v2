@@ -7,15 +7,15 @@ import (
 
 func main() {
 	// 初回のみの読み込み
-	// models.LoadM1CSV()
+	models.LoadM1CSV()
 
-	// models.CreateCandleWithDuration("4h")
+	models.CreateCandleWithDuration("1m")
 
 	for key, _ := range config.Config.Durations {
 		if key == "1m" {
 			continue
 		}
-		models.CreateCandleWithDuration(key)
+		go models.CreateCandleWithDuration(key)
 	}
 
 	// controllers.StartServer()
