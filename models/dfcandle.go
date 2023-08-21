@@ -103,8 +103,8 @@ func (df *DataFrameCandle) Closes() []float64 {
 	return s
 }
 
-func (df *DataFrameCandle) Swaps() []int {
-	s := make([]int, len(df.Candles))
+func (df *DataFrameCandle) Swaps() []float64 {
+	s := make([]float64, len(df.Candles))
 	for i, v := range df.Candles {
 		s[i] = v.Swap
 	}
@@ -189,7 +189,7 @@ func (df *DataFrameCandle) BuyRule(timeTime time.Time) bool {
 		return false
 	}
 
-	candle := GetCandle(timeTime)
+	candle := GetCandle(timeTime, "1d")
 	/*
 		前回の購入金額よりも1円下がったら追加購入する LastSignal()メソッドで判定
 		購入回数は10回まで

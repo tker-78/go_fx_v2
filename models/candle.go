@@ -3,30 +3,40 @@ package models
 import (
 	"fmt"
 	"log"
+	"math"
 	"time"
 
 	"example.com/tker-78/fx2/config"
 )
 
 type Candle struct {
-	Time  time.Time `json:"time"`
-	Open  float64   `json:"open"`
-	High  float64   `json:"high"`
-	Low   float64   `json:"low"`
-	Close float64   `json:"close"`
-	Swap  int       `json:"swap"`
+	Duration    time.Duration `json:"duration"`
+	DurationKey string        `json:"duration_key"`
+	Time        time.Time     `json:"time"`
+	Open        float64       `json:"open"`
+	High        float64       `json:"high"`
+	Low         float64       `json:"low"`
+	Close       float64       `json:"close"`
+	Swap        float64       `json:"swap"`
+}
+
+func NewCandle(durationName string, timeTime time.Time, open, high, low, close, swap float64) *Candle {
+	duration := config.Config.Durations[durationName]
+	return &Candle{
+		duration,
+		durationName,
+		timeTime,
+		open,
+		high,
+		low,
+		close,
+		swap,
+	}
 }
 
 func (candle Candle) Mid() float64 {
 	return (candle.High + candle.Low) / 2
 }
-
-// ex) usd_jpy_1d
-// func GetTableName() string {
-// 	currency_code := config.Config.CurrencyCode
-// 	duration := config.Config.Duration
-// 	return currency_code + "_" + duration
-// }
 
 // 時刻を日付の形式に切り捨てて、RFC3339形式にフォーマットする
 // データベースからの情報読み出し時に使用する
@@ -35,10 +45,34 @@ func TruncateTimeToDate(timeTime time.Time) string {
 	return timeTime.Truncate(24 * time.Hour).Format(time.RFC3339)
 }
 
+func TruncateTimeToDuration(timeTime time.Time, durationName string) string {
+	duration := config.Config.Durations[durationName]
+	return timeTime.Truncate(duration).Format(time.RFC3339)
+}
+
+// candleを保存
+func (candle *Candle) Save() bool {
+
+	tableName := GetTableName(candle.DurationKey)
+
+	cmd := fmt.Sprintf(`
+	INSERT INTO %s (time, open, high, low, close, swap) VALUES($1, $2, $3, $4, $5, $6)
+	ON CONFLICT (time) DO UPDATE SET open = $2, high = $3, low = $4, close = $5, swap = $6
+	`, tableName)
+
+	_, err := DbConnection.Exec(cmd, candle.Time, candle.Open, candle.High, candle.Low, candle.Close, candle.Swap)
+	if err != nil {
+		log.Println("error occured while inserting candle:", err)
+		return false
+	}
+	return true
+}
+
 // candleを一つ返す(日付で指定)
-func GetCandle(timeTime time.Time) *Candle {
-	tableName := GetTableName("1m")
-	truncatedTime := TruncateTimeToDate(timeTime)
+func GetCandle(timeTime time.Time, durationName string) *Candle {
+	tableName := GetTableName(durationName)
+	fmt.Println(tableName)
+	truncatedTime := TruncateTimeToDuration(timeTime, durationName)
 	cmd := fmt.Sprintf(`
 	SELECT * FROM %s WHERE time = $1
 	`, tableName)
@@ -50,14 +84,17 @@ func GetCandle(timeTime time.Time) *Candle {
 	err := row.Scan(&candle.Time, &candle.Open, &candle.High, &candle.Low, &candle.Close, &candle.Swap)
 	if err != nil {
 		fmt.Println(err)
+		return nil
 	}
 	return &Candle{
-		Time:  candle.Time,
-		Open:  candle.Open,
-		High:  candle.Open,
-		Low:   candle.Low,
-		Close: candle.Close,
-		Swap:  candle.Swap,
+		Duration:    config.Config.Durations[durationName],
+		DurationKey: durationName,
+		Time:        candle.Time,
+		Open:        candle.Open,
+		High:        candle.Open,
+		Low:         candle.Low,
+		Close:       candle.Close,
+		Swap:        candle.Swap,
 	}
 }
 
@@ -149,4 +186,44 @@ func GetCandlesAfterTime(dateTime time.Time) (*DataFrameCandle, error) {
 		dfCandle.Candles = append(dfCandle.Candles, candle)
 	}
 	return dfCandle, err
+}
+
+func CreateCandleWithDuration(durationName string) bool {
+	// 1mのデータベースから値を読み出して、所定のデータベースに格納する
+	tableName := GetTableName("1m")
+	duration := config.Config.Durations[durationName]
+
+	cmd := fmt.Sprintf(`
+	SELECT * FROM %s	
+	`, tableName)
+
+	rows, err := DbConnection.Query(cmd)
+	if err != nil {
+		log.Println("error occured while querying to 1m table:", err)
+		return false
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var candle Candle
+		rows.Scan(&candle.Time, &candle.Open, &candle.High, &candle.Low, &candle.Close, &candle.Swap)
+
+		currentCandle := GetCandle(candle.Time, durationName)
+		price := candle.Mid()
+
+		if currentCandle == nil {
+			currentCandle = NewCandle(durationName, candle.Time.Truncate(duration), price, price, price, price, candle.Swap)
+		}
+
+		if price > currentCandle.High {
+			currentCandle.High = math.Round(price*100) / 100
+		} else if price < currentCandle.Low {
+			currentCandle.Low = math.Round(price*100) / 100
+		}
+		currentCandle.Close = math.Round(price*100) / 100
+		currentCandle.Save()
+	}
+
+	return true
+
 }
