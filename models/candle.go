@@ -71,7 +71,6 @@ func (candle *Candle) Save() bool {
 // candleを一つ返す(日付で指定)
 func GetCandle(timeTime time.Time, durationName string) *Candle {
 	tableName := GetTableName(durationName)
-	fmt.Println(tableName)
 	truncatedTime := TruncateTimeToDuration(timeTime, durationName)
 	cmd := fmt.Sprintf(`
 	SELECT * FROM %s WHERE time = $1
@@ -83,7 +82,6 @@ func GetCandle(timeTime time.Time, durationName string) *Candle {
 
 	err := row.Scan(&candle.Time, &candle.Open, &candle.High, &candle.Low, &candle.Close, &candle.Swap)
 	if err != nil {
-		fmt.Println(err)
 		return nil
 	}
 	return &Candle{
@@ -188,9 +186,9 @@ func GetCandlesAfterTime(dateTime time.Time) (*DataFrameCandle, error) {
 	return dfCandle, err
 }
 
-func CreateCandleWithDuration(durationName string) bool {
+func CreateCandleWithDuration(durationName, fromDuration string) bool {
 	// 1mのデータベースから値を読み出して、所定のデータベースに格納する
-	tableName := GetTableName("1m")
+	tableName := GetTableName(fromDuration)
 	duration := config.Config.Durations[durationName]
 
 	cmd := fmt.Sprintf(`
