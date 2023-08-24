@@ -1,24 +1,21 @@
 package main
 
-import (
-	"example.com/tker-78/fx2/config"
-	"example.com/tker-78/fx2/models"
-)
+import "example.com/tker-78/fx2/controllers"
 
 func main() {
 	// 初回のみの読み込み
-	models.LoadM1CSV()
+	// models.LoadM1CSV()
 
-	models.CreateCandleWithDuration("1m")
+	// models.CreateCandleWithDuration("1m")
 
-	for key, _ := range config.Config.Durations {
-		if key == "1m" {
-			continue
-		}
-		go models.CreateCandleWithDuration(key)
-	}
+	// for key, _ := range config.Config.Durations {
+	// 	if key == "1m" {
+	// 		continue
+	// 	}
+	// 	models.CreateCandleWithDuration(key)
+	// }
 
-	// controllers.StartServer()
+	controllers.StartServer()
 
 	/*
 		以降はデバッグ用temporary code
