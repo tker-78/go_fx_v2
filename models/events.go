@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"log"
+	"math"
 	"strings"
 	"time"
 
@@ -194,14 +195,22 @@ func (signals *SignalEvents) TotalBuySize() (totalSize float64) {
 	var lastSellSignal int = 0
 
 	for i, v := range signals.Signals {
+		// 最後のSELLのインデックスを取得
 		if v.Side == "SELL" {
 			lastSellSignal = i
 		}
 	}
 
-	for _, v := range signals.Signals[(lastSellSignal + 1):] {
-		totalSize += v.Size
+	if lastSellSignal == 0 {
+		for _, v := range signals.Signals {
+			totalSize += v.Size
+		}
+	} else {
+		for _, v := range signals.Signals[(lastSellSignal + 1):] {
+			totalSize += v.Size
+		}
 	}
+
 	return
 }
 
@@ -282,4 +291,47 @@ func (signals *SignalEvents) Sell(dateTime time.Time, price float64, save bool) 
 	signals.Signals = append(signals.Signals, signalEvent)
 
 	return true // temporary
+}
+
+// signalsの結果の分析
+func (signals *SignalEvents) ParseProfit() (totalProfit float64) {
+
+	var sellSignalList []int
+
+	for i, v := range signals.Signals {
+		if v.Side == "SELL" {
+			sellSignalList = append(sellSignalList, i)
+		}
+	}
+
+	var lastSellSignal int = 0
+
+	for {
+
+		if len(sellSignalList) == 0 {
+			break
+		}
+
+		// sellSignalListの先頭要素を取り出してリストから削除する
+		sellSignal := sellSignalList[0]     // 5
+		sellSignalList = sellSignalList[1:] // 13,18,24,29,39,45
+
+		var buyAmount float64
+		sellAmount := 0.0
+
+		for j := lastSellSignal + 1; j < sellSignal; j++ {
+			if j == 1 {
+				buyAmount += signals.Signals[0].Price * signals.Signals[0].Size
+			}
+			buyAmount += signals.Signals[j].Price * signals.Signals[j].Size
+		}
+
+		sellAmount = signals.Signals[sellSignal].Price * signals.Signals[sellSignal].Size
+		profit := math.Round((sellAmount-buyAmount)*100) / 100
+		lastSellSignal = sellSignal // 5
+		fmt.Println(profit)
+
+		totalProfit += profit
+	}
+	return
 }

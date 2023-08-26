@@ -38,37 +38,16 @@ func main() {
 	// 売買結果はデータベースで確認する
 
 	// backtest ema
-	timeTime := time.Date(2010, 01, 01, 00, 00, 00, 00, time.Local)
-	df, err := models.GetCandlesAfterTime(timeTime, "30m")
+
+	startTime := time.Date(2018, 01, 01, 00, 00, 00, 00, time.UTC)
+	endTime := time.Date(2018, 12, 31, 00, 00, 00, 00, time.UTC)
+	df, err := models.GetCandlesByBetween(startTime, endTime, "30m")
 	if err != nil {
 		log.Println(err)
 	}
 
-	df.AddEma(5)
-	df.AddEma(10)
-	df.AddEma(25)
-	df.AddSignals()
-
-	ema1 := df.Emas[0].Value
-	ema2 := df.Emas[1].Value
-
-	for i := 1; i < len(df.Candles); i++ {
-		candle := df.Candles[i-1]
-		if ema1[i-1] <= ema2[i-1] && ema1[i] > ema2[i] {
-			df.Signals.Buy(candle.Time, candle.Mid(), 1000, true)
-		}
-
-		if df.Signals.Profit(candle.Mid()) > 5000 {
-			fmt.Println(df.Signals.Profit(candle.Mid()))
-			df.Signals.Sell(candle.Time, candle.Mid(), true)
-		}
-
-		if df.Signals.Profit(candle.Mid()) < -5000 {
-			fmt.Println(df.Signals.Profit(candle.Mid()))
-			df.Signals.Sell(candle.Time, candle.Mid(), true)
-		}
-	}
-
-	fmt.Println(df.Signals)
+	signals := df.BacktestEma(5, 25)
+	fmt.Println(signals)
+	fmt.Println("total profit:", signals.ParseProfit())
 
 }
