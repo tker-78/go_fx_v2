@@ -29,12 +29,12 @@ func main() {
 
 	go spiner(100*time.Millisecond, "loading candle stick data...")
 
-	models.CreateCandleWithDuration("5m", "1m")
+	// models.CreateCandleWithDuration("5m", "1m")
 
-	models.CreateCandleWithDuration("30m", "5m")
-	models.CreateCandleWithDuration("1h", "30m")
-	models.CreateCandleWithDuration("4h", "1h")
-	models.CreateCandleWithDuration("24h", "4h")
+	// models.CreateCandleWithDuration("30m", "5m")
+	// models.CreateCandleWithDuration("1h", "30m")
+	// models.CreateCandleWithDuration("4h", "1h")
+	models.CreateCandleWithDuration("1d", "4h")
 	// controllers.StartServer()
 
 	/*
