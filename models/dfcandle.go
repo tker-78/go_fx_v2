@@ -357,15 +357,32 @@ func (df *DataFrameCandle) BacktestEma(period1, period2 int) *SignalEvents {
 			df.Signals.Buy(candle.Time, candle.Mid(), 1000, true)
 		}
 
-		if df.Signals.Profit(candle.Mid()) > 3000 {
+		if df.Signals.Profit(candle.Mid()) > 1000 {
 			df.Signals.Sell(candle.Time, candle.Mid(), true)
 		}
 
-		if df.Signals.Profit(candle.Mid()) < -3000 {
+		if df.Signals.Profit(candle.Mid()) < -1000 {
 			df.Signals.Sell(candle.Time, candle.Mid(), true)
 		}
 	}
 
 	return df.Signals
 
+}
+
+func (df *DataFrameCandle) OptimizeEma() (performance float64, bestPeriod1, bestPeriod2 int) {
+	bestPeriod1 = 7
+	bestPeriod2 = 14
+
+	for period1 := 5; period1 < 12; period1++ {
+		for period2 := 12; period2 < 25; period2++ {
+			signalEvents := df.BacktestEma(period1, period2)
+			profit := signalEvents.ParseProfit()
+			if performance < profit {
+				bestPeriod1 = period1
+				bestPeriod2 = period2
+			}
+		}
+	}
+	return
 }

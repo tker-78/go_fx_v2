@@ -117,10 +117,12 @@ func GetCandlesByLimit(limit int, durationName string) (*DataFrameCandle, error)
 
 	dfCandle := &DataFrameCandle{}
 	dfCandle.CurrencyCode = config.Config.CurrencyCode
-	dfCandle.Duration = config.Config.TradeDuration
+	dfCandle.Duration = config.Config.Durations[durationName]
 	for rows.Next() {
 		candle := Candle{}
 		rows.Scan(&candle.Time, &candle.Open, &candle.High, &candle.Low, &candle.Close, &candle.Swap)
+		candle.DurationKey = durationName
+		candle.Duration = config.Config.Durations[durationName]
 		dfCandle.Candles = append(dfCandle.Candles, candle)
 	}
 	return dfCandle, err
