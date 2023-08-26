@@ -98,8 +98,8 @@ func GetCandle(timeTime time.Time, durationName string) *Candle {
 
 // 指定した期間のDataFrameCandleを返す
 // limitで最新側の取得
-func GetCandlesByLimit(limit int) (*DataFrameCandle, error) {
-	tableName := GetTableName("1m")
+func GetCandlesByLimit(limit int, durationName string) (*DataFrameCandle, error) {
+	tableName := GetTableName(durationName)
 	cmd := fmt.Sprintf(`
 	SELECT * FROM (
 		SELECT time, open, high, low, close, swap FROM %s 
@@ -117,10 +117,12 @@ func GetCandlesByLimit(limit int) (*DataFrameCandle, error) {
 
 	dfCandle := &DataFrameCandle{}
 	dfCandle.CurrencyCode = config.Config.CurrencyCode
-	dfCandle.Duration = config.Config.TradeDuration
+	dfCandle.Duration = config.Config.Durations[durationName]
 	for rows.Next() {
 		candle := Candle{}
 		rows.Scan(&candle.Time, &candle.Open, &candle.High, &candle.Low, &candle.Close, &candle.Swap)
+		candle.DurationKey = durationName
+		candle.Duration = config.Config.Durations[durationName]
 		dfCandle.Candles = append(dfCandle.Candles, candle)
 	}
 	return dfCandle, err
@@ -128,8 +130,8 @@ func GetCandlesByLimit(limit int) (*DataFrameCandle, error) {
 
 // 指定した期間のDataFrameCandleを返す
 // between
-func GetCandlesByBetween(start, end time.Time) (*DataFrameCandle, error) {
-	tableName := GetTableName("1m")
+func GetCandlesByBetween(start, end time.Time, durationName string) (*DataFrameCandle, error) {
+	tableName := GetTableName(durationName)
 	startDate := TruncateTimeToDate(start)
 	endDate := TruncateTimeToDate(end)
 
@@ -157,8 +159,8 @@ func GetCandlesByBetween(start, end time.Time) (*DataFrameCandle, error) {
 }
 
 // 指定した日付以降のDataFrameCandleを返す
-func GetCandlesAfterTime(dateTime time.Time) (*DataFrameCandle, error) {
-	tableName := GetTableName("1m")
+func GetCandlesAfterTime(dateTime time.Time, durationName string) (*DataFrameCandle, error) {
+	tableName := GetTableName(durationName)
 	startDate := TruncateTimeToDate(dateTime)
 
 	cmd := fmt.Sprintf(`

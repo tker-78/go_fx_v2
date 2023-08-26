@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"log"
+	"math"
 	"strings"
 	"time"
 
@@ -104,24 +105,31 @@ func GetAllSignals() (*SignalEvents, error) {
 
 // Signalsの利益/損失を返す
 // Todo: df.CheckSellと連携する
-func (signals *SignalEvents) Profit(currentPrice float64) float64 {
+func (signals *SignalEvents) Profit(currentPrice float64) (profit float64) {
 
-	profit := 0.0
-
+	if len(signals.Signals) == 0 {
+		return
+	}
 	tmp_amount := 0.0
+	tmp_size := 0.0
 
-	for _, v := range signals.Signals {
-		if v.Side == "BUY" {
-			tmp_amount += v.Size * v.Price
-		} else if v.Side == "SELL" {
-			continue
+	var lastSellSignal int = 0
+
+	for i, v := range signals.Signals {
+		if v.Side == "SELL" {
+			lastSellSignal = i
 		}
 	}
 
-	tmp_total_size := signals.TempTotalSize()
-	profit = currentPrice*tmp_total_size - tmp_amount
+	for _, v := range signals.Signals[(lastSellSignal + 1):] {
+		tmp_amount += v.Size * v.Price
+		tmp_size += v.Size
+	}
 
-	return profit
+	averagePrice := tmp_amount / tmp_size
+
+	profit = (currentPrice - averagePrice) * tmp_size
+	return
 }
 
 // 現時点の建玉のサイズを返す(BUYで計算)
@@ -178,15 +186,32 @@ func (signals *SignalEvents) SellPrice(line, swap float64) float64 {
 }
 
 // BUYの建玉数を返す
-func (signals *SignalEvents) TotalBuySize() float64 {
-	total_size := 0.0
+func (signals *SignalEvents) TotalBuySize() (totalSize float64) {
 
-	for _, v := range signals.Signals {
-		if v.Side == "BUY" {
-			total_size += v.Size
+	if len(signals.Signals) == 0 {
+		return
+	}
+
+	var lastSellSignal int = 0
+
+	for i, v := range signals.Signals {
+		// 最後のSELLのインデックスを取得
+		if v.Side == "SELL" {
+			lastSellSignal = i
 		}
 	}
-	return total_size
+
+	if lastSellSignal == 0 {
+		for _, v := range signals.Signals {
+			totalSize += v.Size
+		}
+	} else {
+		for _, v := range signals.Signals[(lastSellSignal + 1):] {
+			totalSize += v.Size
+		}
+	}
+
+	return
 }
 
 // signalsを削除する
@@ -207,7 +232,9 @@ func DeleteSignals() bool {
 // signalsに関する購入条件制約
 // 例えば、signalsの数が上限を超えていたら購入できない、など
 func (signals *SignalEvents) CanBuy() bool {
-
+	if signals.TotalBuySize() >= 10000 {
+		return false
+	}
 	return true //temporary
 }
 
@@ -238,7 +265,9 @@ func (signals *SignalEvents) Buy(dateTime time.Time, price, size float64, save b
 // signalsに関する売却条件制約
 // 例えば、BUYのsignalがない場合は、売却できない、など
 func (signals *SignalEvents) CanSell() bool {
-
+	if signals.Signals[len(signals.Signals)-1].Side == "SELL" || len(signals.Signals) == 0 {
+		return false
+	}
 	return true //temporary
 }
 
@@ -262,4 +291,47 @@ func (signals *SignalEvents) Sell(dateTime time.Time, price float64, save bool) 
 	signals.Signals = append(signals.Signals, signalEvent)
 
 	return true // temporary
+}
+
+// signalsの結果の分析
+func (signals *SignalEvents) ParseProfit() (totalProfit float64) {
+
+	var sellSignalList []int
+
+	for i, v := range signals.Signals {
+		if v.Side == "SELL" {
+			sellSignalList = append(sellSignalList, i)
+		}
+	}
+
+	var lastSellSignal int = 0
+
+	for {
+
+		if len(sellSignalList) == 0 {
+			break
+		}
+
+		// sellSignalListの先頭要素を取り出してリストから削除する
+		sellSignal := sellSignalList[0]     // 5
+		sellSignalList = sellSignalList[1:] // 13,18,24,29,39,45
+
+		var buyAmount float64
+		sellAmount := 0.0
+
+		for j := lastSellSignal + 1; j < sellSignal; j++ {
+			if j == 1 {
+				buyAmount += signals.Signals[0].Price * signals.Signals[0].Size
+			}
+			buyAmount += signals.Signals[j].Price * signals.Signals[j].Size
+		}
+
+		sellAmount = signals.Signals[sellSignal].Price * signals.Signals[sellSignal].Size
+		profit := math.Round((sellAmount-buyAmount)*100) / 100
+		lastSellSignal = sellSignal // 5
+		fmt.Println(profit)
+
+		totalProfit += profit
+	}
+	return
 }

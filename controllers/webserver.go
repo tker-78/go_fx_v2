@@ -19,6 +19,12 @@ func StartServer() error {
 
 func apiCandleHandler(w http.ResponseWriter, r *http.Request) {
 	var df *models.DataFrameCandle
+
+	durationName := r.URL.Query().Get("duration")
+	if durationName == "" {
+		durationName = "5m"
+	}
+
 	// limitでdfの抽出
 	// startかendが指定されていない場合のみ、実行する
 	strLimit := r.URL.Query().Get("limit")
@@ -49,17 +55,17 @@ func apiCandleHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println(err)
 		}
-		df, err = models.GetCandlesAfterTime(startDate)
+		df, err = models.GetCandlesAfterTime(startDate, durationName)
 		if err != nil {
 			log.Println(err)
 		}
 	} else if strStart == "" && strEnd == "" {
-		df, err = models.GetCandlesByLimit(limit)
+		df, err = models.GetCandlesByLimit(limit, durationName)
 		if err != nil {
 			log.Println(err)
 		}
 	} else {
-		df, err = models.GetCandlesByBetween(startDate, endDate)
+		df, err = models.GetCandlesByBetween(startDate, endDate, durationName)
 		if err != nil {
 			log.Println(err)
 		}
@@ -132,19 +138,27 @@ func apiCandleHandler(w http.ResponseWriter, r *http.Request) {
 
 	df.AddStochastic(stoPeriod, stoFast, stoD)
 
+	// events
+	events := r.URL.Query().Get("events")
+	if events != "" {
+		performance, p1, p2 := df.OptimizeEma()
+		fmt.Println("backtestEma:", performance)
+		df.Signals = df.BacktestEma(p1, p2)
+	}
+
 	// Signals関連
 	models.DeleteSignals()
 	df.AddSignals()
-	df.ExeSimWithStartDate()
+	// df.ExeSimWithStartDate()
 
 	// df.ExeSimWithStartDate()でdfを書き換えたので、Stochasticを更新
 	df.AddStochastic(stoPeriod, stoFast, stoD)
 
 	// Resultsのリセット
-	reset := r.URL.Query().Get("reset")
-	if reset == "true" {
-		df.DeleteResults()
-	}
+	// reset := r.URL.Query().Get("reset")
+	// if reset == "true" {
+	// 	df.DeleteResults()
+	// }
 
 	// CORSの設定
 	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5500")
