@@ -344,45 +344,50 @@ func (df *DataFrameCandle) DeleteResults() bool {
 
 // emaのゴールデンクロスで買い
 func (df *DataFrameCandle) BacktestEma(period1, period2 int) *SignalEvents {
-	df.AddEma(period1)
-	df.AddEma(period2)
-	df.AddSignals()
 
-	ema1 := df.Emas[0].Value
-	ema2 := df.Emas[1].Value
+	signalEvents := NewSignalEvents()
+
+	ema1 := talib.Ema(df.Closes(), period1)
+	ema2 := talib.Ema(df.Closes(), period2)
 
 	for i := 1; i < len(df.Candles); i++ {
 		candle := df.Candles[i-1]
 		if ema1[i-1] <= ema2[i-1] && ema1[i] > ema2[i] {
-			df.Signals.Buy(candle.Time, candle.Mid(), 1000, true)
+			signalEvents.Buy(candle.Time, candle.Mid(), 1000, true)
+
 		}
 
-		if df.Signals.Profit(candle.Mid()) > 1000 {
-			df.Signals.Sell(candle.Time, candle.Mid(), true)
+		if signalEvents.Profit(candle.Mid()) > 1000 {
+			signalEvents.Sell(candle.Time, candle.Mid(), true)
 		}
 
-		if df.Signals.Profit(candle.Mid()) < -1000 {
-			df.Signals.Sell(candle.Time, candle.Mid(), true)
+		if signalEvents.Profit(candle.Mid()) < -1000 {
+			signalEvents.Sell(candle.Time, candle.Mid(), true)
 		}
 	}
 
-	return df.Signals
+	return signalEvents
 
 }
 
 func (df *DataFrameCandle) OptimizeEma() (performance float64, bestPeriod1, bestPeriod2 int) {
 	bestPeriod1 = 7
 	bestPeriod2 = 14
+	performance = -1000000
 
 	for period1 := 5; period1 < 12; period1++ {
-		for period2 := 12; period2 < 25; period2++ {
+		for period2 := 10; period2 < 25; period2++ {
 			signalEvents := df.BacktestEma(period1, period2)
+			if signalEvents == nil {
+				continue
+			}
 			profit := signalEvents.ParseProfit()
 			if performance < profit {
+				performance = profit
 				bestPeriod1 = period1
 				bestPeriod2 = period2
 			}
 		}
 	}
-	return
+	return performance, bestPeriod1, bestPeriod2
 }

@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"time"
 
-	"example.com/tker-78/fx2/controllers"
+	"example.com/tker-78/fx2/models"
 )
 
 func spiner(delay time.Duration, text string) {
@@ -27,7 +28,7 @@ func main() {
 	// 	go models.CreateCandleWithDuration(key)
 	// }
 
-	controllers.StartServer()
+	// controllers.StartServer()
 
 	/*
 		以降はデバッグ用temporary code
@@ -38,15 +39,15 @@ func main() {
 
 	// backtest ema
 
-	// startTime := time.Date(2020, 01, 01, 00, 00, 00, 00, time.Local)
-	// endTime := time.Date(2020, 01, 31, 00, 00, 00, 00, time.Local)
-	// df, err := models.GetCandlesByBetween(startTime, endTime, "30m")
-	// if err != nil {
-	// 	log.Println(err)
-	// }
+	startTime := time.Date(2021, 04, 01, 00, 00, 00, 00, time.UTC)
+	endTime := time.Date(2022, 06, 01, 00, 00, 00, 00, time.UTC)
+	df, err := models.GetCandlesByBetween(startTime, endTime, "1d")
+	if err != nil {
+		log.Println(err)
+	}
 
-	// signals := df.BacktestEma(5, 12)
-	// fmt.Println(signals)
-	// fmt.Println("total profit:", signals.ParseProfit())
+	df.AddSignals()
+
+	df.ExeSimWithStartDate()
 
 }

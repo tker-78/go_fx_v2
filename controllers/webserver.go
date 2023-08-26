@@ -39,16 +39,10 @@ func apiCandleHandler(w http.ResponseWriter, r *http.Request) {
 	// start-endでdfの抽出
 	// limitよりも優先される
 	strStart := r.URL.Query().Get("start")
-	startDate, err := time.Parse("2006-01-02", strStart)
-	if err != nil {
-		log.Println(err)
-	}
+	startDate, _ := time.Parse("2006-01-02", strStart)
 
 	strEnd := r.URL.Query().Get("end")
-	endDate, err := time.Parse("2006-01-02", strEnd)
-	if err != nil {
-		log.Println(err)
-	}
+	endDate, _ := time.Parse("2006-01-02", strEnd)
 
 	if strStart != "" && strEnd == "" {
 		startDate, err := time.Parse("2006-01-02", strStart)
@@ -138,17 +132,18 @@ func apiCandleHandler(w http.ResponseWriter, r *http.Request) {
 
 	df.AddStochastic(stoPeriod, stoFast, stoD)
 
+	df.AddSignals()
+
 	// events
 	events := r.URL.Query().Get("events")
 	if events != "" {
 		performance, p1, p2 := df.OptimizeEma()
-		fmt.Println("backtestEma:", performance)
+		fmt.Println("performance of backtestEma:", performance)
 		df.Signals = df.BacktestEma(p1, p2)
 	}
 
 	// Signals関連
 	models.DeleteSignals()
-	df.AddSignals()
 	// df.ExeSimWithStartDate()
 
 	// df.ExeSimWithStartDate()でdfを書き換えたので、Stochasticを更新

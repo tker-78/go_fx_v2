@@ -158,7 +158,7 @@ func LoadCSV() {
 
 			_, err = DbConnection.Exec(c, timeString, open, high, low, close, swap)
 			if err != nil {
-				log.Println(err)
+				log.Println("error occured while executing sql:", err)
 			}
 
 		}

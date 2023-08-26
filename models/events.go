@@ -329,9 +329,10 @@ func (signals *SignalEvents) ParseProfit() (totalProfit float64) {
 		sellAmount = signals.Signals[sellSignal].Price * signals.Signals[sellSignal].Size
 		profit := math.Round((sellAmount-buyAmount)*100) / 100
 		lastSellSignal = sellSignal // 5
-		fmt.Println(profit)
 
 		totalProfit += profit
+
+		log.Println(totalProfit)
 	}
 	return
 }
